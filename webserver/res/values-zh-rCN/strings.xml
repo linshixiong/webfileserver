@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+      <string name="app_name">网络文件共享</string>
+    <string name="action_settings">设置</string>
+    <string name="title_activity_server">网络文件共享</string>
+	<string name="turn_on_server">打开共享服务</string>
+	<string name="turn_off_server">关闭共享服务</string>
+	<string name="server_off">文件共享服务已关闭</string>
+	<string name="server_on">共享已开启,在浏览器中输入以下网址访问共享</string>
+	<string name="server_suspend">文件共享服务已暂停</string>
+	<string name="storage_off">注意:设备存储设备不可用</string>
+	<string name="wifi_off">无可用的网络连接</string>
+	<string name="web_file_extract">正在初始化...</string>
+	<string name="notification_title">文件共享正在运行</string>
+	<string name="notification_content">服务地址：%s</string>
+</resources>

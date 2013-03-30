@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Web Server</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_server">Web Server</string>
+	<string name="turn_on_server">Turn on server</string>
+	<string name="turn_off_server">Turn off server</string>
+	<string name="server_off">Web server is off</string>
+	<string name="server_on">Web server is on,access by this url</string>
+	<string name="server_suspend">Web server is suspend</string>
+	<string name="storage_off">Attention,the storage device is not available</string>
+	<string name="wifi_off">Network is not available</string>
+	<string name="web_file_extract">Initializing...</string>
+	<string name="notification_title">Web server is running</string>
+	<string name="notification_content">Server address：%s</string>
+</resources>
