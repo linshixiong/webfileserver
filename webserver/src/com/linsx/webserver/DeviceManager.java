@@ -115,7 +115,7 @@ public class DeviceManager{
 	            state = mStorageListHelper.getVolumeState(totalDevicesList.get(i));
 	           	if(state.equals(Environment.MEDIA_MOUNTED))
 	           	{
-	           		Log.d(TAG,"totalDevicesList.get(i)="+totalDevicesList.get(i));
+	           		Log.d(TAG,"totalDevicesList.get("+i+")="+totalDevicesList.get(i));
 	           		mountedDevices.add(totalDevicesList.get(i));
 	           	}
 	        }

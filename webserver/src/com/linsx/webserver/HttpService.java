@@ -32,8 +32,8 @@ public class HttpService extends Service {
 	private IntentFilter filter;
 	private ConnectivityManager connMgr;
 	private Builder builder;
-	private DeviceManager mDm;
-	public static ArrayList<String> deviceList;
+
+
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -54,14 +54,10 @@ public class HttpService extends Service {
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		connMgr = (ConnectivityManager) this
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
-		mDm=new DeviceManager(this);
 		filter = new IntentFilter();
 		filter.addAction(NanoHTTPD.ACTION_SERVER_STATE_CHANGE);
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-		filter.addAction(Intent.ACTION_MEDIA_REMOVED);
-		filter.addAction(Intent.ACTION_MEDIA_BAD_REMOVAL);
-		filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
-		filter.addDataScheme("file");
+
 
 		this.registerReceiver(receiver, filter);
 	}
@@ -115,15 +111,7 @@ public class HttpService extends Service {
 
 			}
 
-			else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED)
-					|| intent.getAction().equals(
-							Intent.ACTION_MEDIA_BAD_REMOVAL)
-					|| intent.getAction().equals(Intent.ACTION_MEDIA_MOUNTED)) {
-				
-					Log.d(TAG,"ACTION MEDIA STATE CHANGE");
-					deviceList=mDm.getMountedDevicesList();
-
-			}
+		
 		}
 
 	};
@@ -134,9 +122,8 @@ public class HttpService extends Service {
 		File wwwRoot = new File(this.getFilesDir(), "web");
 
 		try {
-			deviceList=mDm.getMountedDevicesList();
-			
-			httpd = new NanoHTTPD(this, 8080, wwwRoot, new File(fileRoot));
+		
+			httpd = new NanoHTTPD(this, 8080, wwwRoot);
 			if (wl != null) {
 				wl.acquire();
 
