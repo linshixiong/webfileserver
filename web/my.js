@@ -34,45 +34,8 @@
 			var video = document.getElementById("video_player");
 			video.pause();
 		} );
-		
-		
-		
-		$("#filelist > li").click(function ()  {  
-			console.log("filelistClick");
-			if($(this).attr("isDirectory")=="true")
-			{
-				return;
-			}		
-			 var length= $("#filelist > li").length;
-			 for(var i=0;i<length;i++)
-			 {
-				var o= $("#filelist > li").get(i);
-				if($(o).attr("isDirectory")=="true")
-				{
-					continue;
-				}
 				
-				$(o).buttonMarkup({ icon: "file" });
-				$(o).find("a").removeClass("checked"); 	
-				
-			 }
-			$(this).buttonMarkup({ icon: "file-checked" });
-			$(this).addClass("checked"); 
-			$(this).find("a").addClass("checked"); 
-		});
-		
-		$("#file").change(function () {
-			
-            var file = document.getElementById('file').files[0];
-			if (file) {
-				var fileSize = getFileSize(file.size);
 
-				$("#uploadDialog").popup("open");
-			}
-			document.getElementById('fileName').innerHTML = '名称: ' + file.name;
-			document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
-
-        });
 	
 	}
 	
@@ -82,6 +45,29 @@
 			
 		}
 	
+	
+	function FileitemClick(obj){
+			
+			console.log("filelistClick");
+	
+			 var length= $("#filelist > li").length;
+			 for(var i=0;i<length;i++)
+			 {
+				var o= $("#filelist > li").get(i);
+				
+				if($(o).attr("isDirectory")=="true")
+				{
+					continue;
+				}
+				
+				$(o).buttonMarkup({ icon: "file" });
+				$(o).find("a").removeClass("checked"); 	
+				
+			 }
+			$(obj).buttonMarkup({ icon: "file-checked" });
+			$(obj).addClass("checked"); 
+			$(obj).find("a").addClass("checked"); 
+	}
 	
 	function getSelectedFile(){
 	
@@ -174,6 +160,18 @@
 	
 	function selectFile()
 	{
+		$("#file").change(function () {
+			
+            var file = document.getElementById('file').files[0];
+			if (file) {
+				var fileSize = getFileSize(file.size);
+
+				$("#uploadDialog").popup("open");
+			}
+			document.getElementById('fileName').innerHTML = '名称: ' + file.name;
+			document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
+
+        });
 		 $("#file").click();  
 	}
 
@@ -196,8 +194,6 @@
 	 function mkdirComplete(evt) {
 		$("#filelist").html(evt.target.responseText);
 		$("#filelist").listview('refresh'); 
-		//$("#filelist > li").click(filelistClick);
-		//location.reload() ;
 	 }
 
 	var xhr;
@@ -234,6 +230,7 @@
 
 		$("#filelist").html(evt.target.responseText);
 		$("#filelist").listview('refresh'); 
+		pageInit(this);
 		//$("#filelist > li").click(filelistClick);
       }
       function uploadFailed(evt) {
