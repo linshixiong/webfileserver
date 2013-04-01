@@ -14,4 +14,11 @@
 	<string name="web_file_extract">Initializing...</string>
 	<string name="notification_title">Web server is running</string>
 	<string name="notification_content">Server address：%s</string>
+	<string name="server_settings">Server settings</string>
+	<string name="server_port">Server Port</string>
+	<string name="server_port_summary">Server port is %d</string>
+	<string name="server_port_dialog_title">Input the server port</string>
+	<string name="server_port_invalid">Port number must be between 1024 and 65535</string>
+	<string name="about">About</string>
+	<string name="version">Version</string>
 </resources>

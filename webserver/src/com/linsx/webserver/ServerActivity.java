@@ -19,6 +19,7 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
@@ -27,7 +28,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class ServerActivity extends Activity implements OnClickListener,
-		android.content.DialogInterface.OnClickListener,OnCancelListener {
+		android.content.DialogInterface.OnClickListener, OnCancelListener {
 
 	private static final String TAG = "ServerActivity";
 	private ToggleButton toggleButton;
@@ -38,7 +39,6 @@ public class ServerActivity extends Activity implements OnClickListener,
 	private ProgressDialog progress;
 	private ImageView img;
 	private IntentFilter filter;
-	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +53,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 		img = (ImageView) findViewById(R.id.imageView1);
 		connMgr = (ConnectivityManager) this
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
-		
+
 		Settings.init(this);
 
 		if (!WebFileInstaller.isWebfileInstalled(this)) {
@@ -67,17 +67,31 @@ public class ServerActivity extends Activity implements OnClickListener,
 
 	@Override
 	protected void onResume() {
-	
+
 		this.registerReceiver(receiver, filter);
 		refreshUIState();
 
 		super.onResume();
 	}
 
-	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.server, menu);
+		return true;
+	}
 
-	
-	
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			Intent intent=new Intent();
+			intent.setClass(this, SettingsActivity.class);
+			this.startActivity(intent);
+			break;
+		}
+		return super.onMenuItemSelected(featureId, item);
+	}
+
 	private void refreshUIState() {
 		if (!Utils.isSdCardMounted()) {
 			Toast.makeText(this, R.string.storage_off, Toast.LENGTH_LONG)
@@ -97,14 +111,14 @@ public class ServerActivity extends Activity implements OnClickListener,
 		}
 		toggleButton.setEnabled(true);
 		if (HttpService.isRunning()) {
-			ipAddress =Utils.getLocalIpAddress();
+			ipAddress = Utils.getLocalIpAddress();
 
 			textView.setText(R.string.server_on);
 			textView.setTextColor(Color.argb(255, 0x22, 0x8b, 0x22));
 			img.setImageResource(R.drawable.signal_on);
 			toggleButton.setChecked(true);
 			textUrl.setVisibility(View.VISIBLE);
-			textUrl.setText(String.format("http://%s:%d", ipAddress, HttpService.port));
+			textUrl.setText(String.format("http://%s:%d", ipAddress,Settings.getPort()));
 
 		} else {
 			textView.setText(R.string.server_off);
@@ -134,15 +148,13 @@ public class ServerActivity extends Activity implements OnClickListener,
 
 			else if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent
 					.getAction())) {
-				
-				 refreshUIState();
-				
-			} 
+
+				refreshUIState();
+
+			}
 		}
 
 	};
-
-
 
 	private void showInstallProgress() {
 		progress = new ProgressDialog(this);
@@ -155,11 +167,10 @@ public class ServerActivity extends Activity implements OnClickListener,
 
 	@Override
 	public void onCancel(DialogInterface dialog) {
-		
-		//Toast.makeText(this, "cancel", Toast.LENGTH_SHORT).show();
+
+		// Toast.makeText(this, "cancel", Toast.LENGTH_SHORT).show();
 	}
 
-	
 	private Handler handler = new Handler() {
 
 		@Override
@@ -198,11 +209,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.server, menu);
-		return true;
-	}
+
 
 	@Override
 	public void onClick(View v) {
@@ -216,8 +223,5 @@ public class ServerActivity extends Activity implements OnClickListener,
 
 		}
 	}
-
-
-	
 
 }

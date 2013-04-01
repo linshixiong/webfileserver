@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/server_settings" >
+        <EditTextPreference
+            android:dialogTitle="@string/server_port_dialog_title"
+            android:key="edittext_server_port"
+            android:numeric="integer"
+            android:summary="@string/server_port_summary"
+            android:title="@string/server_port" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/about" >
+        <Preference
+            android:key="prdference_version"
+            android:title="@string/version" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -22,4 +22,13 @@ public class Settings {
 	{
 		prefs.edit().putString("web_file_md5", md5).commit();
 	}
+	
+	public static int getPort()
+	{
+		return prefs.getInt("server_port", 8080);
+	}
+	
+	public static void setPort(int port){
+		prefs.edit().putInt("server_port", port).commit();
+	}
 }

@@ -28,7 +28,7 @@ public class HttpService extends Service {
 	private PowerManager.WakeLock wl;
 	public String fileRoot;
 	private NotificationManager mNotificationManager;
-	public static int port = 8080;
+	//public static int port = 8080;
 	private IntentFilter filter;
 	private ConnectivityManager connMgr;
 	private Builder builder;
@@ -89,7 +89,7 @@ public class HttpService extends Service {
 
 					builder.setContentTitle(getString(R.string.notification_title));
 					String ipAddress = Utils.getLocalIpAddress();
-					String url = String.format("http://%s:%d", ipAddress, port);
+					String url = String.format("http://%s:%d", ipAddress, Settings.getPort());
 					builder.setContentText(getString(
 							R.string.notification_content, url));
 
@@ -123,7 +123,7 @@ public class HttpService extends Service {
 
 		try {
 		
-			httpd = new NanoHTTPD(this, 8080, wwwRoot);
+			httpd = new NanoHTTPD(this, Settings.getPort(), wwwRoot);
 			if (wl != null) {
 				wl.acquire();
 
@@ -174,7 +174,7 @@ public class HttpService extends Service {
 
 		builder.setContentTitle(getString(R.string.notification_title));
 		String ipAddress = Utils.getLocalIpAddress();
-		String url = String.format("http://%s:%d", ipAddress, port);
+		String url = String.format("http://%s:%d", ipAddress, Settings.getPort());
 		builder.setContentText(getString(R.string.notification_content, url));
 		builder.setContentIntent(pendingIntent);
 		// builder.setDefaults( Notification.DEFAULT_SOUND);
