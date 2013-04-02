@@ -25,11 +25,7 @@
 			console.log("downloadDialog popupafterclose");
 			$( "#downloadDialog" ).popup( "close");
 		});
-		$( "#uploadDialog" ).on( "popupafterclose", function( event, ui ) {	
-			xhr.abort();
-			var target=document.getElementById("uploadProgress");
-			target.style.display="none"; 
-		} );
+
 		
 		$( "#popupAudio" ).on( "popupafterclose", function( event, ui ) {	
 			var audio = document.getElementById("audio_player");
@@ -192,7 +188,16 @@
 			document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
 
         });
-		 $("#file").click();  
+		$( "#uploadDialog" ).on( "popupafterclose", function( event, ui ) {	
+			console.log("uploadDialog close");
+			if(xhr!=undefined){
+				xhr.abort();
+			}
+			var target=document.getElementById("uploadProgress");
+			target.style.display="none";
+			$("#file").val("");	
+		} );
+		$("#file").click();  
 	}
 
 	function showDownloadDialog()
@@ -253,9 +258,11 @@
 		pageInit(this);
       }
       function uploadFailed(evt) {
-      }
+		$("#uploadDialog").popup("close");
+	  }
       function uploadCanceled(evt) {
-        
+        $("#uploadDialog").popup("close");
+		//alert(evt.target.responseText);
       }
 
 	
