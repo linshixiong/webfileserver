@@ -180,9 +180,12 @@ public class NanoHTTPD {
 
 	public void stop() {
 		try {
-			myServerSocket.close();
-			myThread.join();
-
+			if(myServerSocket!=null){
+				myServerSocket.close();			
+			}
+			if(myThread!=null){
+				myThread.join();
+			}
 			Intent intent = new Intent(Intents.ACTION_SERVER_STATE_CHANGE);
 
 			mContext.sendBroadcast(intent);

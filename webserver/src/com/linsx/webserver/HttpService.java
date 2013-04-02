@@ -80,7 +80,9 @@ public class HttpService extends Service {
 			else if(Intents.ACTION_RESTART_SERVER.equals(intent.getAction())){
 				if(httpd!=null){
 					httpd.setPort(Settings.getPort());
-					httpd.restart();
+					if(HttpService.isRunning()){ 
+						httpd.restart();		
+					}
 				}
 			}
 			else if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent
