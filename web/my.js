@@ -4,6 +4,14 @@
 	var mkdirOK;
 	var downloadFileName;
 	
+	function showToast(msg){
+		$("#toast_msg").html(msg);
+		$("#toast" ).popup( "option", "transition", "pop" );
+		$("#toast" ).popup( "open", "" );
+		$( "#toast" ).on( "popupafteropen", function( event, ui ) {	
+			window.setTimeout(cloeseToast,800);		
+		} );
+	}
 		
 	function cloeseToast(){
 		$("#toast").popup( "close" );
@@ -11,9 +19,7 @@
 	
 	function pageInit (event){
 		console.log("pageInit");
-		$( "#toast" ).on( "popupafteropen", function( event, ui ) {	
-			window.setTimeout(cloeseToast,800);		
-		} );
+
 		
 		$( "#downloadDialog" ).on( "popupafterclose", function( event, ui ) {	
 			console.log("downloadDialog popupafterclose");
@@ -45,6 +51,17 @@
 			
 		}
 	
+	function showMkdirDialog(){
+		var uri= window.location.pathname;
+		if(uri==""||uri=="/")
+		{
+			showToast("无法在当前路径新建资料夹");
+			return;
+		}
+		var dialog=$("#mkdirDialog");
+		dialog.popup( "option", "transition", "pop" );
+		dialog.popup( "open", "" );
+	}
 	
 	function FileitemClick(obj){
 			
@@ -95,10 +112,7 @@
 		var selected=getSelectedFile();
 		if(selected==undefined){
 			console.log("请选择需要下载的文件.");
-			$("#toast_msg").html("请选择需要下载的文件.");
-			$("#toast" ).popup( "option", "transition", "pop" );
-			$("#toast" ).popup( "open", "" );
-			
+			showToast("请选择需要下载的文件.");
 		}
 		else{
 			console.log("设置下载链接...");
@@ -119,8 +133,6 @@
 	
 	function startDownloadFile()
 	{
-		//console.log("startDownloadFile...");
-		
 		window.setTimeout(closeDownloadDialog,100);	
 	}
 	
@@ -160,6 +172,14 @@
 	
 	function selectFile()
 	{
+		var uri= window.location.pathname;
+		console.log("select file upload to "+uri);
+		if(uri==""||uri=="/")
+		{
+			showToast("无法在当前路径上传档案");
+			return;
+		}
+		
 		$("#file").change(function () {
 			
             var file = document.getElementById('file').files[0];
@@ -231,10 +251,8 @@
 		$("#filelist").html(evt.target.responseText);
 		$("#filelist").listview('refresh'); 
 		pageInit(this);
-		//$("#filelist > li").click(filelistClick);
       }
       function uploadFailed(evt) {
-        //alert("There was an error attempting to upload the file.");
       }
       function uploadCanceled(evt) {
         
@@ -242,12 +260,9 @@
 
 	
 	function openFile(){
-		//$("#action").attr("href","#NONE");
 		var selected=getSelectedFile();
 		if(selected==undefined){
-			$("#toast_msg").html("请选择需要打开的文件.");
-			$("#toast" ).popup( "option", "transition", "pop" );
-			$("#toast" ).popup( "open", "" );			
+			showToast("请选择需要打开的文件.");
 		}
 		
 		else{
@@ -281,17 +296,20 @@
 					dialog=$("#popupVideo" );
 				}else
 				{
-					$("#toast_msg").html("此文件类型无法直接打开，请下载此文件!");
-					dialog=$("#toast");
+					showToast("此文件类型无法直接打开，请下载此文件!");
+					return;
 				}
 				
 			}else{
-				$("#toast_msg").html("此文件类型无法直接打开，请下载此文件!");
-				dialog=$("#toast");
+				showToast("此文件类型无法直接打开，请下载此文件!");		
+				return;
 			}
 			dialog.popup( "option", "transition", "pop" );
 			dialog.popup( "open", "" );
 		
 		}
-	}	
+	}
+
+
+		
 	
