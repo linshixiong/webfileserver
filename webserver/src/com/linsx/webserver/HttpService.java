@@ -149,8 +149,10 @@ public class HttpService extends Service {
 
 	@Override
 	public void onDestroy() {
-		httpd.stop();
-		if (wl != null) {
+		if(httpd!=null){
+			httpd.stop();
+		}
+		if (wl != null&&wl.isHeld()) {
 			wl.release();
 		}
 		mNotificationManager.cancel(100);

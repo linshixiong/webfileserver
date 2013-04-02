@@ -16,11 +16,7 @@ import android.os.storage.StorageManager;
 import android.util.Log;
 //import android.os.storage.IMountService;
 //import android.os.ServiceManager;
-/**
- * manager of flash,sdcard,usbhost
- * @author chenjd
- *
- */
+
 public class DeviceManager{
 	
 	private static String TAG = "DeviceManager";

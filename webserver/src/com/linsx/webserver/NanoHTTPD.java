@@ -16,7 +16,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,11 +34,18 @@ import java.io.FileOutputStream;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 public class NanoHTTPD {
+	private int myTcpPort;
+	private ServerSocket myServerSocket;
+	private Thread myThread;
+	private File wwwroot;
+	private static final String TAG = "NanoHTTPD";
+	private Context mContext;
+	private DeviceManager dm;
+	private List<String> mDeviceList;
 
-
-	
 	private void mkdir(String uri, File homeDir, String dir) {
 		Log.d(TAG, "mkdir uri=" + uri + ",dir=" + dir + ",home=" + homeDir);
 		if (dir == null || dir.trim().equals("")) {
@@ -134,12 +140,6 @@ public class NanoHTTPD {
 			MIME_DEFAULT_BINARY = "application/octet-stream",
 			MIME_XML = "text/xml";
 
-	private static final String TAG = "NanoHTTPD";
-
-	private Context mContext;
-	private DeviceManager dm;
-	private List<String> mDeviceList;
-
 	public NanoHTTPD(Context context, int port, File wwwroot)
 			throws IOException {
 		myTcpPort = port;
@@ -149,24 +149,33 @@ public class NanoHTTPD {
 		start();
 	}
 
-	public void start() throws IOException {
-		myServerSocket = new ServerSocket(myTcpPort);
-		myThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					while (true)
-						new HTTPSession(myServerSocket.accept());
-				} catch (IOException ioe) {
+	public void start() {
+
+		try {
+			myServerSocket = new ServerSocket(myTcpPort);
+			myThread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						while (true)
+							new HTTPSession(myServerSocket.accept());
+					} catch (IOException ioe) {
+					}
 				}
-			}
-		});
-		myThread.setDaemon(true);
-		myThread.start();
-		if (!myServerSocket.isClosed()) {
+			});
+			myThread.setDaemon(true);
+			myThread.start();
+
+		} catch (IOException e) {
+			Toast.makeText(mContext, mContext.getResources().getString(R.string.server_port_occupied, Settings.getPort()), Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		} finally {
+
 			Intent intent = new Intent(Intents.ACTION_SERVER_STATE_CHANGE);
 			mContext.sendBroadcast(intent);
+
 		}
+
 	}
 
 	public void stop() {
@@ -190,12 +199,9 @@ public class NanoHTTPD {
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
-		try {
-			start();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+
+		start();
+
 	}
 
 	public boolean isRunning() {
@@ -226,6 +232,8 @@ public class NanoHTTPD {
 		@Override
 		public void run() {
 			try {
+
+				long timeStart = System.currentTimeMillis();
 				InputStream is = mySocket.getInputStream();
 				if (is == null)
 					return;
@@ -239,12 +247,14 @@ public class NanoHTTPD {
 					while (read > 0) {
 						rlen += read;
 						splitbyte = findHeaderEnd(buf, rlen);
-						if (splitbyte > 0)
+						if (splitbyte > 0) {
 							break;
+						}
 						read = is.read(buf, rlen, bufsize - rlen);
 					}
 				}
-
+				Log.d(TAG, "findHeaderEnd,splitbyte=" + splitbyte + ",rlen="
+						+ rlen);
 				// Create a BufferedReader for parsing the header.
 				ByteArrayInputStream hbis = new ByteArrayInputStream(buf, 0,
 						rlen);
@@ -254,7 +264,6 @@ public class NanoHTTPD {
 				Properties pre = new Properties();
 				Properties parms = new Properties();
 				Properties header = new Properties();
-				// Properties files = new Properties();
 
 				// Decode the header into parms and header java properties
 				decodeHeader(hin, pre, parms, header);
@@ -262,13 +271,10 @@ public class NanoHTTPD {
 				if (method == null) {
 					sendError(HTTP_INTERNALERROR,
 							"SERVER INTERNAL ERROR: method is undefined.");
+					return;
 				}
 				String uri = pre.getProperty("uri");
-				Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
-				/*
-				 * if(uri==null){ uri="/"; }if(!uri.startsWith("/")){
-				 * uri="/"+uri; }
-				 */
+				// Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
 
 				long size = 0x7FFFFFFFFFFFFFFFl;
 				String contentLength = header.getProperty("content-length");
@@ -280,7 +286,6 @@ public class NanoHTTPD {
 				}
 
 				// Write the part of body already read to ByteArrayOutputStream
-				// f
 				ByteArrayOutputStream f = new ByteArrayOutputStream();
 				if (splitbyte < rlen) {
 					f.write(buf, splitbyte, rlen - splitbyte);
@@ -418,7 +423,6 @@ public class NanoHTTPD {
 							size -= rlen;
 							if (rlen > 0) {
 								f.write(buf, 0, rlen);
-								// Log.d(TAG, "write buff size " + rlen);
 							}
 						}
 
@@ -457,6 +461,10 @@ public class NanoHTTPD {
 					sendResponse(r.status, r.mimeType, r.header, r.data);
 				}
 				is.close();
+				long timeSpan = System.currentTimeMillis() - timeStart;
+
+				Log.d(TAG, "session end ,method=" + method + ", uri=" + uri
+						+ ",timeSpan=" + timeSpan);
 			} catch (IOException ioe) {
 				try {
 					sendError(
@@ -466,7 +474,7 @@ public class NanoHTTPD {
 				} catch (Throwable t) {
 				}
 			} catch (InterruptedException ie) {
-				// Thrown by sendError, ignore and exit the thread.
+
 			}
 		}
 
@@ -582,17 +590,6 @@ public class NanoHTTPD {
 		 * For example: "an+example%20string" -> "an example string"
 		 */
 		private String decodePercent(String str) throws InterruptedException {
-			/*
-			 * try {
-			 * 
-			 * StringBuffer sb = new StringBuffer(); for (int i = 0; i <
-			 * str.length(); i++) { char c = str.charAt(i); switch (c) { case
-			 * '+': sb.append(' '); break; case '%': sb.append((char)
-			 * Integer.parseInt( str.substring(i + 1, i + 3), 16)); i += 2;
-			 * break; default: sb.append(c); break; } } return sb.toString(); }
-			 * catch (Exception e) { sendError(HTTP_BADREQUEST,
-			 * "BAD REQUEST: Bad percent-encoding."); return null; }
-			 */
 			return URLDecoder.decode(str);
 		}
 
@@ -690,11 +687,6 @@ public class NanoHTTPD {
 
 		private Socket mySocket;
 	}
-
-	private int myTcpPort;
-	private ServerSocket myServerSocket;
-	private Thread myThread;
-	private File wwwroot;
 
 	public String getFileListString(List<File> files, String uri) {
 		StringBuilder sb = new StringBuilder();
@@ -826,6 +818,7 @@ public class NanoHTTPD {
 			File indexFile = new File(wwwroot, "index.html");
 
 			String msg = null;
+
 			if (indexFile.exists()) {
 				FileFilter filter = new FileFilter() {
 
@@ -1009,7 +1002,7 @@ public class NanoHTTPD {
 				+ "htm		text/html " + "html		text/html " + "xml		text/xml "
 				+ "txt		text/plain " + "asc		text/plain " + "gif		image/gif "
 				+ "jpg		image/jpeg " + "jpeg		image/jpeg " + "png		image/png "
-				+ "bmp image/bmp " + "mp3		audio/mpeg "
+				+ "bmp image/bmp " + "mp3		audio/mpeg " + "wma audio/wma "
 				+ "m3u		audio/mpeg-url " + "mp4		video/mp4 "
 				+ "ogv		video/ogg " + "flv		video/x-flv "
 				+ "mov		video/quicktime " + "3gp  video/3gp "
