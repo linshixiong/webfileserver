@@ -61,7 +61,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 			installWebFiles();
 		}
 		filter = new IntentFilter();
-		filter.addAction(NanoHTTPD.ACTION_SERVER_STATE_CHANGE);
+		filter.addAction(Intents.ACTION_SERVER_STATE_CHANGE);
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
 	}
 
@@ -141,7 +141,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 		@Override
 		public void onReceive(Context context, Intent intent) {
 
-			if (NanoHTTPD.ACTION_SERVER_STATE_CHANGE.equals(intent.getAction())) {
+			if (Intents.ACTION_SERVER_STATE_CHANGE.equals(intent.getAction())) {
 				refreshUIState();
 
 			}

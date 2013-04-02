@@ -55,9 +55,9 @@ public class HttpService extends Service {
 		connMgr = (ConnectivityManager) this
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		filter = new IntentFilter();
-		filter.addAction(NanoHTTPD.ACTION_SERVER_STATE_CHANGE);
+		filter.addAction(Intents.ACTION_SERVER_STATE_CHANGE);
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-
+		filter.addAction(Intents.ACTION_RESTART_SERVER);
 
 		this.registerReceiver(receiver, filter);
 	}
@@ -68,7 +68,7 @@ public class HttpService extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 
-			if (NanoHTTPD.ACTION_SERVER_STATE_CHANGE.equals(intent.getAction())) {
+			if (Intents.ACTION_SERVER_STATE_CHANGE.equals(intent.getAction())) {
 
 				if (isRunning()) {
 					showNotificaction();
@@ -77,7 +77,12 @@ public class HttpService extends Service {
 				}
 
 			}
-
+			else if(Intents.ACTION_RESTART_SERVER.equals(intent.getAction())){
+				if(httpd!=null){
+					httpd.setPort(Settings.getPort());
+					httpd.restart();
+				}
+			}
 			else if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent
 					.getAction())) {
 
@@ -124,6 +129,7 @@ public class HttpService extends Service {
 		try {
 		
 			httpd = new NanoHTTPD(this, Settings.getPort(), wwwRoot);
+		
 			if (wl != null) {
 				wl.acquire();
 

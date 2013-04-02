@@ -32,18 +32,17 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
-
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
 public class NanoHTTPD {
 
-	public static String ACTION_SERVER_STATE_CHANGE = "com.linsx.webserver.acction.SERVER_STATE_CHANGE";
 
+	
 	private void mkdir(String uri, File homeDir, String dir) {
-		Log.d(TAG, "mkdir uri=" + uri + ",dir=" + dir+",home="+homeDir);
-		if(dir==null||dir.trim().equals("")){
+		Log.d(TAG, "mkdir uri=" + uri + ",dir=" + dir + ",home=" + homeDir);
+		if (dir == null || dir.trim().equals("")) {
 			return;
 		}
 		File root = new File(homeDir, uri);
@@ -140,14 +139,18 @@ public class NanoHTTPD {
 	private Context mContext;
 	private DeviceManager dm;
 	private List<String> mDeviceList;
-	
+
 	public NanoHTTPD(Context context, int port, File wwwroot)
 			throws IOException {
 		myTcpPort = port;
 		this.wwwroot = wwwroot;
-		myServerSocket = new ServerSocket(myTcpPort);
 		this.mContext = context;
-		dm=new DeviceManager(mContext);
+		dm = new DeviceManager(mContext);
+		start();
+	}
+
+	public void start() throws IOException {
+		myServerSocket = new ServerSocket(myTcpPort);
 		myThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -160,10 +163,10 @@ public class NanoHTTPD {
 		});
 		myThread.setDaemon(true);
 		myThread.start();
-
-		Intent intent = new Intent(ACTION_SERVER_STATE_CHANGE);
-
-		mContext.sendBroadcast(intent);
+		if (!myServerSocket.isClosed()) {
+			Intent intent = new Intent(Intents.ACTION_SERVER_STATE_CHANGE);
+			mContext.sendBroadcast(intent);
+		}
 	}
 
 	public void stop() {
@@ -171,7 +174,7 @@ public class NanoHTTPD {
 			myServerSocket.close();
 			myThread.join();
 
-			Intent intent = new Intent(ACTION_SERVER_STATE_CHANGE);
+			Intent intent = new Intent(Intents.ACTION_SERVER_STATE_CHANGE);
 
 			mContext.sendBroadcast(intent);
 		} catch (IOException ioe) {
@@ -179,8 +182,37 @@ public class NanoHTTPD {
 		}
 	}
 
+	public void restart() {
+		Log.d(TAG, "restart");
+		stop();
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
 	public boolean isRunning() {
 		return myServerSocket == null ? false : !myServerSocket.isClosed();
+	}
+
+	public int getPort() {
+		return myTcpPort;
+	}
+
+	public void setPort(int port) {
+
+		if (this.myTcpPort != port) {
+			this.myTcpPort = port;
+
+		}
+
 	}
 
 	private class HTTPSession implements Runnable {
@@ -232,13 +264,11 @@ public class NanoHTTPD {
 							"SERVER INTERNAL ERROR: method is undefined.");
 				}
 				String uri = pre.getProperty("uri");
-				Log.d(TAG, "pre.getProperty(\"uri\")="+uri);
+				Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
 				/*
-				if(uri==null){
-					uri="/";
-				}if(!uri.startsWith("/")){
-					uri="/"+uri;
-				}*/
+				 * if(uri==null){ uri="/"; }if(!uri.startsWith("/")){
+				 * uri="/"+uri; }
+				 */
 
 				long size = 0x7FFFFFFFFFFFFFFFl;
 				String contentLength = header.getProperty("content-length");
@@ -273,11 +303,12 @@ public class NanoHTTPD {
 				if (webRoot) {
 					homeDir = wwwroot;
 				} else {
-					mDeviceList=dm.getMountedDevicesList();
+					mDeviceList = dm.getMountedDevicesList();
 					homeDir = getHomeDir(uri);
-				
+
 				}
-				Log.d(TAG, "webRoot=" + webRoot + ",homeDir=" + homeDir+",uri="+uri);
+				Log.d(TAG, "webRoot=" + webRoot + ",homeDir=" + homeDir
+						+ ",uri=" + uri);
 
 				if (method.equalsIgnoreCase("POST")) {
 
@@ -410,11 +441,11 @@ public class NanoHTTPD {
 						}
 						postLine = postLine.trim();
 						decodeParms(postLine, parms);
-						
-						String mkdir=parms.getProperty("mkdir");
 
-						mkdir(uri,homeDir,mkdir);
-						
+						String mkdir = parms.getProperty("mkdir");
+
+						mkdir(uri, homeDir, mkdir);
+
 					}
 				}
 
@@ -440,17 +471,15 @@ public class NanoHTTPD {
 		}
 
 		private File getHomeDir(String uri) {
-			
+
 			if (uri.equals("/") || uri.equals("")) {
 				return null;
 			}
 
-			
-
 			if (mDeviceList != null) {
 				for (String volume : mDeviceList) {
-					File file=new File(volume);
-					if (uri.startsWith("/"+file.getName())) {
+					File file = new File(volume);
+					if (uri.startsWith("/" + file.getName())) {
 						return file.getParentFile();
 					}
 				}
@@ -663,7 +692,7 @@ public class NanoHTTPD {
 	}
 
 	private int myTcpPort;
-	private final ServerSocket myServerSocket;
+	private ServerSocket myServerSocket;
 	private Thread myThread;
 	private File wwwroot;
 
@@ -674,12 +703,12 @@ public class NanoHTTPD {
 
 			File file = files.get(i);
 			String data_icon = file.isDirectory() ? "folder" : "file";
-			if(uri.equals("/")){
-				uri="";
+			if (uri.equals("/")) {
+				uri = "";
 			}
-			String href = file.isDirectory() ? uri+"/"+files.get(i).getName()+"/"
-					: "#";
-			href=href.replace("//", "/");
+			String href = file.isDirectory() ? uri + "/"
+					+ files.get(i).getName() + "/" : "#";
+			href = href.replace("//", "/");
 			String img_src = null;
 
 			if (file.isDirectory()) {
@@ -706,10 +735,12 @@ public class NanoHTTPD {
 
 			}
 
-			sb.append(String.format("<li onclick='FileitemClick(this)' isDirectory='%b'" + " fileSize='%d'"
-					+ " data-icon='%s' >" + "<a href='%s' "
-					+ " data-transition='none' " + "><img src='%s'"
-					+ " alt='%s' class='ui-li-icon' />%s</a></li>\n",
+			sb.append(String.format(
+					"<li onclick='FileitemClick(this)' isDirectory='%b'"
+							+ " fileSize='%d'" + " data-icon='%s' >"
+							+ "<a href='%s' " + " data-transition='none' "
+							+ "><img src='%s'"
+							+ " alt='%s' class='ui-li-icon' />%s</a></li>\n",
 					file.isDirectory(),
 					file.isDirectory() ? -1 : file.length(), data_icon, href,
 					img_src, file.getName(), file.getName()));
@@ -720,11 +751,11 @@ public class NanoHTTPD {
 
 	private List<File> getDeviceVolumes() {
 
-		ArrayList<File> files=new ArrayList<File>();
-		
+		ArrayList<File> files = new ArrayList<File>();
+
 		if (mDeviceList != null) {
-			
-			for (String s :mDeviceList) {
+
+			for (String s : mDeviceList) {
 				files.add(new File(s));
 			}
 		}
@@ -740,7 +771,6 @@ public class NanoHTTPD {
 			File homeDir) {
 		Response res = null;
 
-			
 		// Make sure we won't die of an exception later
 		if (homeDir != null && !homeDir.isDirectory()) {
 			res = new Response(HTTP_INTERNALERROR, MIME_PLAINTEXT,
@@ -774,7 +804,7 @@ public class NanoHTTPD {
 		// List the directory, if necessary
 		if (homeDir == null || f.isDirectory()) {
 
-			if (homeDir == null&&!uri.equals("/")) {
+			if (homeDir == null && !uri.equals("/")) {
 
 				res = new Response(HTTP_REDIRECT, MIME_HTML,
 						"<html><body>Redirected: <a href=\"/\"</a></body></html>");
@@ -792,7 +822,7 @@ public class NanoHTTPD {
 				return res;
 
 			}
-			
+
 			File indexFile = new File(wwwroot, "index.html");
 
 			String msg = null;
@@ -978,9 +1008,10 @@ public class NanoHTTPD {
 		StringTokenizer st = new StringTokenizer("css		text/css "
 				+ "htm		text/html " + "html		text/html " + "xml		text/xml "
 				+ "txt		text/plain " + "asc		text/plain " + "gif		image/gif "
-				+ "jpg		image/jpeg " + "jpeg		image/jpeg " + "png		image/png "+"bmp image/bmp "
-				+ "mp3		audio/mpeg " + "m3u		audio/mpeg-url "
-				+ "mp4		video/mp4 " + "ogv		video/ogg " + "flv		video/x-flv "
+				+ "jpg		image/jpeg " + "jpeg		image/jpeg " + "png		image/png "
+				+ "bmp image/bmp " + "mp3		audio/mpeg "
+				+ "m3u		audio/mpeg-url " + "mp4		video/mp4 "
+				+ "ogv		video/ogg " + "flv		video/x-flv "
 				+ "mov		video/quicktime " + "3gp  video/3gp "
 				+ "rmvb  video/rmvb " + "swf		application/x-shockwave-flash "
 				+ "js			application/javascript " + "pdf		application/pdf "

@@ -1,5 +1,6 @@
 package com.linsx.webserver;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
@@ -56,6 +57,9 @@ public class SettingsActivity extends PreferenceActivity implements
 			} else {
 				Settings.setPort(port);
 				updatePreferences();
+				Intent intent=new Intent(Intents.ACTION_RESTART_SERVER);
+				sendBroadcast(intent);
+				
 			}
 
 		}
