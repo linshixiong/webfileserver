@@ -16,6 +16,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.Menu;
@@ -38,8 +39,9 @@ public class ServerActivity extends Activity implements OnClickListener,
 	private String ipAddress;
 	private ProgressDialog progress;
 	private ImageView img;
+	private ImageView imgQrcode;
 	private IntentFilter filter;
-
+	private Bitmap mQRbitmap;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -51,6 +53,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 		textView = (TextView) findViewById(R.id.textView1);
 		textUrl = (TextView) findViewById(R.id.textView2);
 		img = (ImageView) findViewById(R.id.imageView1);
+		imgQrcode= (ImageView) findViewById(R.id.imageView_QRcode);
 		connMgr = (ConnectivityManager) this
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -105,7 +108,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 			img.setImageResource(R.drawable.signal_off);
 			toggleButton.setEnabled(false);
 			textUrl.setVisibility(View.GONE);
-
+			imgQrcode.setVisibility(View.GONE);
 			return;
 
 		}
@@ -118,7 +121,9 @@ public class ServerActivity extends Activity implements OnClickListener,
 			img.setImageResource(R.drawable.signal_on);
 			toggleButton.setChecked(true);
 			textUrl.setVisibility(View.VISIBLE);
-			textUrl.setText(String.format("http://%s:%d", ipAddress,Settings.getPort()));
+			String url=String.format("http://%s:%d", ipAddress,Settings.getPort());
+			textUrl.setText(url);
+			createQRcode(url);
 
 		} else {
 			textView.setText(R.string.server_off);
@@ -126,6 +131,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 			img.setImageResource(R.drawable.signal_off);
 			toggleButton.setChecked(false);
 			textUrl.setVisibility(View.GONE);
+			imgQrcode.setVisibility(View.GONE);
 		}
 
 	}
@@ -184,6 +190,13 @@ public class ServerActivity extends Activity implements OnClickListener,
 			case 1:
 				ServerActivity.this.finish();
 				break;
+			case 2:
+				if(HttpService.isRunning())
+				{
+					imgQrcode.setVisibility(View.VISIBLE);
+					imgQrcode.setImageBitmap(mQRbitmap);
+				}
+				break;
 			default:
 				break;
 			}
@@ -222,6 +235,30 @@ public class ServerActivity extends Activity implements OnClickListener,
 			stopService(intent);
 
 		}
+	}
+	
+	
+	private void createQRcode(final String url){
+		new Thread(){
+
+		
+
+			@Override
+			public void run() {
+				
+				mQRbitmap=Utils.Create2DCode(url);
+				
+				if(mQRbitmap!=null){
+					Message msg=new Message();
+					msg.what=2;
+					handler.sendMessage(msg);
+				}
+				super.run();
+			}
+			
+			
+			
+		}.start();
 	}
 
 }
