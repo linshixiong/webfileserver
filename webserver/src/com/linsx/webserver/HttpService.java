@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
@@ -32,7 +33,7 @@ public class HttpService extends Service {
 	private IntentFilter filter;
 	private ConnectivityManager connMgr;
 	private Builder builder;
-
+	public static final boolean DEBUG=false;
 
 	
 	@Override
@@ -126,7 +127,7 @@ public class HttpService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		File wwwRoot = new File(this.getFilesDir(), "web");
+		File wwwRoot = DEBUG?new File(Environment.getExternalStorageDirectory(), "web"): new File(this.getFilesDir(), "web");
 
 		try {
 		

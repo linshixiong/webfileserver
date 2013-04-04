@@ -33,6 +33,8 @@ import java.io.FileOutputStream;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -167,7 +169,11 @@ public class NanoHTTPD {
 			myThread.start();
 
 		} catch (IOException e) {
-			Toast.makeText(mContext, mContext.getResources().getString(R.string.server_port_occupied, Settings.getPort()), Toast.LENGTH_SHORT).show();
+			Toast.makeText(
+					mContext,
+					mContext.getResources().getString(
+							R.string.server_port_occupied, Settings.getPort()),
+					Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
 		} finally {
 
@@ -180,10 +186,10 @@ public class NanoHTTPD {
 
 	public void stop() {
 		try {
-			if(myServerSocket!=null){
-				myServerSocket.close();			
+			if (myServerSocket != null) {
+				myServerSocket.close();
 			}
-			if(myThread!=null){
+			if (myThread != null) {
 				myThread.join();
 			}
 			Intent intent = new Intent(Intents.ACTION_SERVER_STATE_CHANGE);
@@ -281,9 +287,10 @@ public class NanoHTTPD {
 
 				long size = 0x7FFFFFFFFFFFFFFFl;
 				String contentLength = header.getProperty("content-length");
+
 				if (contentLength != null) {
 					try {
-						size = Integer.parseInt(contentLength);
+						size = Long.parseLong(contentLength);
 					} catch (NumberFormatException ex) {
 					}
 				}
@@ -307,6 +314,8 @@ public class NanoHTTPD {
 				File homeDir = null;
 				boolean webRoot = Boolean.parseBoolean(parms
 						.getProperty("webroot"));
+				String action = parms.getProperty("action", "").trim()
+						.toLowerCase();
 
 				if (webRoot) {
 					homeDir = wwwroot;
@@ -315,8 +324,6 @@ public class NanoHTTPD {
 					homeDir = getHomeDir(uri);
 
 				}
-				Log.d(TAG, "webRoot=" + webRoot + ",homeDir=" + homeDir
-						+ ",uri=" + uri);
 
 				if (method.equalsIgnoreCase("POST")) {
 
@@ -333,13 +340,13 @@ public class NanoHTTPD {
 
 					if (contentType.equalsIgnoreCase("multipart/form-data")) {
 						Log.d(TAG, "post file");
-
+						Log.d(TAG, "contentLength=" + contentLength + "size="
+								+ size);
 						if (size > 0) {
 							rlen = is.read(buf, 0, bufsize);
 							size -= rlen;
 							if (rlen > 0) {
 								f.write(buf, 0, rlen);
-								Log.d(TAG, "fbuf write=" + rlen);
 
 							}
 						}
@@ -350,17 +357,16 @@ public class NanoHTTPD {
 							int offset = stripMultipartHeaders(fbuf, 0);
 							ByteArrayInputStream bin = new ByteArrayInputStream(
 									fbuf, 0, offset);
+
 							BufferedReader in = new BufferedReader(
 									new InputStreamReader(bin));
 							String firstLine = in.readLine();
-							Long fileSize = (size + fbuf.length - offset
-									- firstLine.length() - 5);
+							Long fileSize = size + fbuf.length - offset
+									- firstLine.length() - 6;
 
-							Log.d(TAG, "firstLine=" + firstLine);
-							Log.d(TAG, "fbuf length=" + fbuf.length
-									+ ",offset=" + offset);
 							Log.d(TAG, "fileSize=" + String.valueOf(fileSize));
-							String fileName = "";
+							String fileName = "upload.bin";
+
 							while (true) {
 								String line = in.readLine();
 
@@ -381,7 +387,7 @@ public class NanoHTTPD {
 									}
 								}
 							}
-							Log.d(TAG, "fileName=" + fileName);
+							// Log.d(TAG, "fileName=" + fileName);
 							File rootDir = new File(homeDir, uri);
 							if (!rootDir.exists()) {
 								rootDir.mkdirs();
@@ -391,13 +397,14 @@ public class NanoHTTPD {
 							out = new FileOutputStream(outFile);
 
 							out.write(fbuf, offset, fbuf.length - offset);
-
+							// out.write(fbuf, 0, fbuf.length );
 							size = size - (firstLine.length() + 6);
 							while (size > 0) {
 								rlen = is.read(buf, 0, bufsize);
 
 								size -= rlen;
 								if (rlen > 0) {
+
 									if (size <= 0) {
 										rlen -= (firstLine.length() + 6);
 									}
@@ -456,11 +463,13 @@ public class NanoHTTPD {
 					}
 				}
 
-				Response r = serveFile(uri, method, header, homeDir);
+				Response r = serveFile(uri, method, header, homeDir, action);
 				if (r == null) {
+					Log.d(TAG, "HTTP_INTERNALERROR");
 					sendError(HTTP_INTERNALERROR,
 							"SERVER INTERNAL ERROR: Serve() returned a null response.");
 				} else {
+
 					sendResponse(r.status, r.mimeType, r.header, r.data);
 				}
 				is.close();
@@ -470,14 +479,17 @@ public class NanoHTTPD {
 						+ ",timeSpan=" + timeSpan);
 			} catch (IOException ioe) {
 				try {
+
 					sendError(
 							HTTP_INTERNALERROR,
 							"SERVER INTERNAL ERROR: IOException: "
 									+ ioe.getMessage());
 				} catch (Throwable t) {
+					t.printStackTrace();
 				}
+				ioe.printStackTrace();
 			} catch (InterruptedException ie) {
-
+				ie.printStackTrace();
 			}
 		}
 
@@ -691,6 +703,20 @@ public class NanoHTTPD {
 		private Socket mySocket;
 	}
 
+	
+	public String getGalleryListString(List<File> files)
+	{
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < files.size(); ++i) {
+
+			File file = files.get(i);
+			sb.append(String.format("{ url: '%s', caption: '%s'},\n", file.getName(),file.getName()));
+		}
+	
+		return sb.toString();
+	}
+	
 	public String getFileListString(List<File> files, String uri) {
 		StringBuilder sb = new StringBuilder();
 
@@ -763,9 +789,9 @@ public class NanoHTTPD {
 	 * ignores all headers and HTTP parameters.
 	 */
 	public Response serveFile(String uri, String method, Properties header,
-			File homeDir) {
+			File homeDir, String action) {
 		Response res = null;
-
+		Log.d(TAG, "serveFile");
 		// Make sure we won't die of an exception later
 		if (homeDir != null && !homeDir.isDirectory()) {
 			res = new Response(HTTP_INTERNALERROR, MIME_PLAINTEXT,
@@ -896,7 +922,9 @@ public class NanoHTTPD {
 			res = new Response(HTTP_OK, MIME_HTML, msg);
 
 			return res;
-		} else {
+		}
+
+		else {
 			try {
 
 				// Get MIME type from file name extension, if possible
@@ -909,6 +937,167 @@ public class NanoHTTPD {
 				if (mime == null)
 					mime = MIME_DEFAULT_BINARY;
 				Log.d(TAG, "mime=" + mime);
+
+				if (action.endsWith("play")) {
+
+					if (mime.contains("image")) {
+						File galleryHtml = new File(wwwroot, "gallery.html");
+
+						if (galleryHtml.exists()) {
+							FileFilter filter = new FileFilter() {
+
+								@Override
+								public boolean accept(File pathname) {
+									int dot=0;
+									try {
+										dot = pathname.getCanonicalPath().lastIndexOf('.');
+										if(dot<=0){
+											return false;
+										}
+										String type=theMimeTypes.get(pathname.getCanonicalPath()
+												.substring(dot + 1).toLowerCase());
+										if(type==null){
+											return false;
+										}
+										if (type.contains("image") ) {
+															return true;
+														} else {
+															return false;
+														}
+									} catch (IOException e) {
+										
+										e.printStackTrace();
+										return false;
+									}
+									
+									
+								}
+							};
+
+							List<File> files = null;
+							if (f.canRead()) {
+								files = Arrays.asList(f.getParentFile().listFiles(filter));
+
+								Collections.sort(files, new Comparator<File>() {
+									@Override
+									public int compare(File o1, File o2) {
+										if (o1.isDirectory() && o2.isFile())
+											return -1;
+										if (o1.isFile() && o2.isDirectory())
+											return 1;
+										return o1
+												.getName()
+												.toLowerCase()
+												.compareTo(
+														o2.getName()
+																.toLowerCase());
+									}
+								});
+							} else {
+								files = new ArrayList<File>();
+							}
+							
+							
+							String msg = null;
+							try {
+
+								StringBuilder sb = new StringBuilder();
+
+								BufferedReader br = new BufferedReader(
+										new FileReader(galleryHtml));
+								while (true) {
+									String r = br.readLine();
+									if (r == null) {
+										break;
+									}
+
+									if (r.trim().contains(
+											"{gallery_items}")) {
+										
+										
+										r=getGalleryListString(files);
+									}
+									if (r.trim().contains(
+											"instance.show")) {
+										
+										for (int i=0;i< files.size();i++) {
+											File file=files.get(i);
+											if(file.getName().equals(f.getName())){
+												r="instance.show("+i+")";
+												break;
+											}
+										}
+										
+									}
+
+									
+									sb.append(r);
+									sb.append("\n");
+
+								}
+
+								msg = sb.toString();
+
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							res = new Response(HTTP_OK, MIME_HTML, msg);
+							return res;
+						}
+					}
+
+					else if (mime.contains("audio/mpeg")
+							|| mime.contains("mp4")) {
+						File playerHtml = new File(wwwroot, "player.html");
+
+						if (playerHtml.exists()) {
+							String msg = null;
+
+							try {
+
+								StringBuilder sb = new StringBuilder();
+
+								BufferedReader br = new BufferedReader(
+										new FileReader(playerHtml));
+								while (true) {
+									String r = br.readLine();
+									if (r == null) {
+										break;
+									}
+
+									if (r.trim().equalsIgnoreCase(
+											"{player_item}")) {
+										String type = mime.contains("audio") ? "audio"
+												: "video";
+										r = String.format(
+												" <%s  src=\"%s\" controls=\"controls\" autoplay=\"autoplay\">"
+														+ "您的浏览器不支持%s播放。"
+														+ " </%s>", type,
+												f.getName(), type, type);
+
+									}
+									sb.append(r);
+									sb.append("\n");
+
+								}
+
+								msg = sb.toString();
+
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							res = new Response(HTTP_OK, MIME_HTML, msg);
+							return res;
+
+						}
+
+					}
+				}
+
 				// Calculate etag
 				String etag = Integer.toHexString((f.getAbsolutePath()
 						+ f.lastModified() + "" + f.length()).hashCode());
@@ -949,8 +1138,7 @@ public class NanoHTTPD {
 						if (newLen < 0)
 							newLen = 0;
 
-						final long dataLen = newLen;
-
+						final long dataLen = newLen;    
 						FileInputStream fis = new FileInputStream(f) {
 							@Override
 							public int available() throws IOException {

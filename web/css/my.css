@@ -116,3 +116,42 @@
 #bottom_bar  li{
 
 }
+
+#player{
+	background-color:#cccccc;
+	border:1px solid #ffffff;
+	border-radius:10px;
+	box-shadow:0 0 15px 2px #000000;
+	-moz-border-radius:10px;
+	-moz-box-shadow:0 0 15px 2px #000000;
+	-webkit-box-shadow:0 0 15px 2px #000000;
+	text-align:center;
+	margin:0 auto;
+}
+#player img{
+		
+	width:100%;
+	padding-top:10px;
+	padding-bottom:10px;
+	display:none;
+	
+}
+
+
+#player video{
+		
+	width:98%;
+	padding-top:15px;
+	padding-bottom:15px;
+
+	
+}
+
+#player audio{
+		
+	width:98%;
+	padding-top:15px;
+	padding-bottom:15px;
+	
+}
+
