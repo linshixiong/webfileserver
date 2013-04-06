@@ -7,10 +7,10 @@
 #divider {
 	 padding: 10px 10px 10px 10px; 
 	 font-size: 18px; 
-	 font-weight: bold;
+
 	 margin-bottom:15px;
 	 height:20px;
-
+	
 	background:url(/images/divider_bg.png?webroot=true) repeat-x ; 
 	-moz-border-radius: 15px;
     -webkit-border-radius: 15px;
@@ -27,6 +27,7 @@
  #divider  span{
 	margin-left:10px;
 	text-align: center;
+	color:#FFFFFF;
  }
  
  #back_button{
