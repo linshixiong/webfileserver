@@ -59,6 +59,20 @@ public class NanoHTTPD {
 			newDir.mkdirs();
 		}
 	}
+	
+	
+	private void deleteFile(String uri, File homeDir, String file){
+		
+		Log.d(TAG, "delete uri=" + uri + ",file=" + file + ",home=" + homeDir);
+		if (file == null || file.trim().equals("")) {
+			return;
+		}
+		File root = new File(homeDir, uri);
+		if (root.exists() && root.canWrite()) {
+			File targetFile = new File(root, file);
+			targetFile.delete();
+		}
+	}
 
 	/**
 	 * HTTP response. Return one of these from serve().
@@ -456,9 +470,14 @@ public class NanoHTTPD {
 						postLine = postLine.trim();
 						decodeParms(postLine, parms);
 
-						String mkdir = parms.getProperty("mkdir");
-
-						mkdir(uri, homeDir, mkdir);
+						String mkdir = parms.getProperty("mkdir","").trim();
+						if(!mkdir.equals("")){
+							mkdir(uri, homeDir, mkdir);
+						}
+						String deleteFile=parms.getProperty("delete","").trim();
+						if(!deleteFile.equals("")){
+							deleteFile(uri, homeDir, deleteFile);
+						}
 
 					}
 				}

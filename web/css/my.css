@@ -38,6 +38,11 @@
 	height:28px;
  }
 
+ #delete_button{
+	background-color:#E28C8F;
+	display:none;
+ }
+ 
 
  #bottom_bar li a{
  	background-image: url(/images/list_item_bg.png?webroot=true);

@@ -25,12 +25,12 @@
 			console.log("downloadDialog popupafterclose");
 			$( "#downloadDialog" ).popup( "close");
 		});
-
-		
-		
-				
-
+	}
 	
+	function refreshList(html){
+		$("#filelist").html(html);
+		$("#filelist").listview('refresh'); 
+		$("#delete_button").hide();
 	}
 	
 		function pageShow(event,ui){
@@ -51,6 +51,34 @@
 		dialog.popup( "open", "" );
 	}
 	
+	var fileSelectToDelete;
+	function showDeleteConfirm(){
+		var selected=getSelectedFile();
+		fileSelectToDelete=$(selected).find("img").attr("alt");
+		$("#fileNameDelete").html("档案名称："+fileSelectToDelete);
+		var dialog=$("#deleteFileDialog");
+		dialog.popup( "option", "transition", "pop" );
+		dialog.popup( "open" );
+		
+	}
+	
+	function deleteFile(){
+		var fileName=fileSelectToDelete;
+		var xhr = new XMLHttpRequest();
+		xhr.addEventListener("load", deleteComplete, false);
+		xhr.addEventListener("error", deleteComplete, false);
+		xhr.open("POST", ".");
+		console.log("delete :"+fileName);
+		xhr.send("delete="+fileName);
+		var dialog=$("#deleteFileDialog");
+		dialog.popup( "close");
+	
+	}
+	
+	 function deleteComplete(evt) {
+		refreshList(evt.target.responseText);
+	 }
+	
 	function FileitemClick(obj){
 			
 			console.log("filelistClick");
@@ -69,9 +97,14 @@
 				$(o).find("a").removeClass("checked"); 	
 				
 			 }
-			$(obj).buttonMarkup({ icon: "file-checked" });
-			$(obj).addClass("checked"); 
-			$(obj).find("a").addClass("checked"); 
+			if($(obj).attr("isDirectory")!="true"){
+				$(obj).buttonMarkup({ icon: "file-checked" });
+				$(obj).addClass("checked"); 
+				$(obj).find("a").addClass("checked"); 
+				$("#delete_button").show();
+			}else{
+				$("#delete_button").hide();
+			}
 	}
 	
 	function getSelectedFile(){
@@ -209,8 +242,7 @@
 	}	
 		
 	 function mkdirComplete(evt) {
-		$("#filelist").html(evt.target.responseText);
-		$("#filelist").listview('refresh'); 
+		refreshList(evt.target.responseText);
 	 }
 
 	var xhr;
@@ -244,9 +276,7 @@
       }
       function uploadComplete(evt) {
 		$("#uploadDialog").popup("close");
-
-		$("#filelist").html(evt.target.responseText);
-		$("#filelist").listview('refresh'); 
+		refreshList(evt.target.responseText);
 		pageInit(this);
       }
       function uploadFailed(evt) {

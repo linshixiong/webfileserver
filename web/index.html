@@ -36,6 +36,9 @@
                 <h1>
                     档案列表
                 </h1>
+				 <a href="javascript:showDeleteConfirm()" data-transition="none" id="delete_button"  data-role="button" class="btn-back" data-icon="delete"> 
+                    删除
+                </a>
             </div>
             <div data-role="content" id="content">
 				<div  id="divider">
@@ -149,6 +152,19 @@
                 </div>
             </div>
 
+			
+			<div data-role="popup" id="deleteFileDialog" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
+				<div data-role="header" data-theme="a" class="ui-corner-top">
+					<h1>删除档案?</h1>
+				</div>
+				<div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
+					<h3 class="ui-title">是否确定删除选择的档案?</h3>
+					<p id="fileNameDelete"></p>
+					<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">取消</a>
+					<a href="javascript:deleteFile()" data-role="button" data-inline="true" data-transition="flow" data-theme="b">删除</a>
+				</div>
+			</div>
+			
         </div>
     </body>
 
