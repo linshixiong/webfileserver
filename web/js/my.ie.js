@@ -17,12 +17,6 @@
 		$("#toast").popup( "close" );
 	}
 	
-	function pageInit (event){
-		//console.log("pageInit");
-
-		
-
-	}
 	
 	function refreshList(html){
 		$("#filelist").html(html);
@@ -33,14 +27,7 @@
 	function pageShow(event,ui){
 		//console.log("page show");
 		$(ui.prevPage).remove();
-		/*
-		var browser= getBrowserVersion();
-		if(browser.ie){
-			this.element.find( "a" ).each(function() {
-				//var href = base + $( this ).attr( "href" );
-				//$( this ).attr("data-ajax",false );
-				});
-		}*/
+
 		
 	}
 	
@@ -233,47 +220,18 @@
 		var arr=path.split('\\');
 		return arr[arr.length-1];
 	}
+
+	
 	function selectFile()
 	{
 		var uri= window.location.pathname;
-		//console.log("select file upload to "+uri);
 		if(uri==""||uri=="/")
 		{
 			showToast("无法在当前路径上传档案");
 			return;
 		}
-		
-		$("#file").change(function () {
-			//alert("file change");
-            var file ;
-			var browser=getBrowserInfo();
-			if(browser.ie){
-				file=new Object();
-				file.name=getFileName($(this).val());
-				file.size=-1;
-			}
-			else{
-				file=document.getElementById('file').files[0];
-			}
-			if (file) {
-				var fileSize = getFileSize(file.size);
-
-				$("#uploadDialog").popup("open","");
-			}
-			document.getElementById('fileName').innerHTML = '名称: ' + file.name;
-			document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
-
-        });
-		$( "#uploadDialog" ).on( "popupafterclose", function( event, ui ) {	
-			//console.log("uploadDialog close");
-			if(xhr!=undefined){
-				xhr.abort();
-			}
-			var target=document.getElementById("uploadProgress");
-			target.style.display="none";
-			$("#file").val("");	
-		} );
-		$("#file").click();  
+		$("#uploadDialog").popup("open","");
+	
 	}
 
 	function showDownloadDialog()
@@ -309,7 +267,6 @@
 			xhr.addEventListener("error", uploadComplete, false);
 			xhr.addEventListener("abort", uploadCanceled, false);
 			xhr.open("POST", ".");
-			//xhr.setRequestHeader("Content-Type","multipart/form-data");  
 			xhr.send(fd);
 		}else{
 			//$("#formUploadFile").submit();
