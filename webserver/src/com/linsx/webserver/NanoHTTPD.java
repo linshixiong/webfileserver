@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
@@ -23,7 +24,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -31,11 +31,8 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
-import android.R.bool;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -234,7 +231,7 @@ public class NanoHTTPD {
 				if (is == null)
 					return;
 
-				final int bufsize = 81920;
+				final int bufsize = 8192;
 				byte[] buf = new byte[bufsize];
 				int splitbyte = 0;
 				int rlen = 0;
@@ -270,7 +267,7 @@ public class NanoHTTPD {
 					return;
 				}
 				String uri = pre.getProperty("uri");
-				// Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
+				 Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
 
 				long size = 0x7FFFFFFFFFFFFFFFl;
 				String contentLength = header.getProperty("content-length");
@@ -295,7 +292,7 @@ public class NanoHTTPD {
 					size = 0;
 				}
 
-				buf = new byte[bufsize];
+				//buf = new byte[bufsize];
 
 				File homeDir = null;
 				boolean webRoot = Boolean.parseBoolean(parms
@@ -330,6 +327,7 @@ public class NanoHTTPD {
 						Log.d(TAG, "post file");
 						Log.d(TAG, "contentLength=" + contentLength + "size="
 								+ size);
+						
 						if (size > 0) {
 							rlen = is.read(buf, 0, bufsize);
 							size -= rlen;
@@ -338,17 +336,10 @@ public class NanoHTTPD {
 
 							}
 						}
-
 						byte[] fbuf = f.toByteArray();
 						if (fbuf.length > 0) {
 							Properties fileInfos = new Properties();
 							int offset = stripMultipartHeaders(fbuf, fileInfos);
-							ByteArrayInputStream bin = new ByteArrayInputStream(
-									fbuf, 0, offset);
-
-							BufferedReader in = new BufferedReader(
-									new InputStreamReader(bin));
-							String firstLine = in.readLine();
 
 							String fileName = fileInfos.getProperty("filename",
 									"unknown.file");
@@ -379,21 +370,21 @@ public class NanoHTTPD {
 							}
 							final int fileBufSize = 81920;
 							byte[] fileBuf = new byte[fileBufSize];
-							long sizeUnreaded = size - f.size();
+							//long sizeUnreaded = size - f.size();
 							ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
 							while (true) {
-								if (sizeUnreaded <= 0) {
+								if (size <= 0) {
 									break;
 								}
 
-								if (sizeUnreaded <= fileBufSize * 2) {
+								if (size <= fileBufSize * 2) {
 
 									int read = is.read(fileBuf, 0, fileBufSize);
 									if (read > 0) {
 										byteArrayOutputStream.write(fileBuf, 0,
 												read);
-										sizeUnreaded -= read;
+										size -= read;
 										Log.d(TAG, "size readed 2:" + read);
 									} else {
 										break;
@@ -404,7 +395,7 @@ public class NanoHTTPD {
 									int read = is.read(fileBuf, 0, fileBufSize);
 									if (read > 0) {
 										out.write(fileBuf, 0, read);
-										sizeUnreaded -= read;
+										size -= read;
 										Log.d(TAG, "size readed 1:" + read);
 									} else {
 										break;
@@ -419,7 +410,7 @@ public class NanoHTTPD {
 										0, endOffset);
 							}
 							out.close();
-							if (sizeUnreaded > 0) {
+							if (size > 0) {
 								Log.d(TAG,
 										"Upload canceled:" + outFile.getName());
 								outFile.delete();
@@ -687,7 +678,11 @@ public class NanoHTTPD {
 		 * For example: "an+example%20string" -> "an example string"
 		 */
 		private String decodePercent(String str) throws InterruptedException {
+			
+			Log.d(TAG, "decodePercent "+str);
+			
 			return URLDecoder.decode(str);
+			
 		}
 
 		/**
