@@ -261,7 +261,7 @@ public class NanoHTTPD {
 				if (is == null)
 					return;
 
-				final int bufsize = 8192;
+				final int bufsize = 81920;
 				byte[] buf = new byte[bufsize];
 				int splitbyte = 0;
 				int rlen = 0;
