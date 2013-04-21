@@ -231,6 +231,11 @@
 			return;
 		}
 		$("#uploadDialog").popup("open","");
+		$( "#uploadDialog" ).on( "popupafterclose", function( event, ui ) {	
+			cancelUpload();
+			var target=document.getElementById("uploadProgress");
+			target.style.display="none";
+		} );
 	
 	}
 
@@ -242,9 +247,11 @@
 	function  mkdir(){
 		var dirName=$('#dir_name').val();
 		var xhr = new XMLHttpRequest();
+
 		xhr.addEventListener("load", mkdirComplete, false);
 		xhr.addEventListener("error", mkdirComplete, false);
 		xhr.open("POST", ".");
+		//xhr.setRequestHeader("charset", "utf-8");
 		xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");  
 		//console.log("mkdir :"+dirName);
 		xhr.send("mkdir="+dirName);

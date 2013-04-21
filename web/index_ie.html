@@ -35,7 +35,7 @@
 				file_types : "*.*",
 				file_types_description : "All Files",
 				file_upload_limit : 0,
-				file_queue_limit : 1,
+				file_queue_limit : 0,
 
 				debug: true,
 
@@ -48,7 +48,7 @@
 				button_text_style: ".theFont { font-size: 16; }",
 				button_text_left_padding: 12,
 				button_text_top_padding: 3,
-				
+				button_cursor : SWFUpload.CURSOR.HAND,
 				
 				// The event handler functions are defined in handlers.js
 				swfupload_preload_handler : preLoad,
@@ -71,10 +71,14 @@
 			});
 		
 	     };
-		 
+		 var file_id;
 		 function upload(){
+			//alert(file_id);
+			swfu.startUpload(file_id);
+		 }
 		 
-			swfu.startUpload();
+		 function cancelUpload(){
+			swfu.cancelUpload(file_id);
 		 }
 	</script>
     </head>

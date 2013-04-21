@@ -11,6 +11,8 @@ function loadFailed() {
 
 function fileQueued(file) {
 		var fileSize = getFileSize(file.size);
+		file_id=file.id;
+		//alert(file_id);
 		document.getElementById('fileName').innerHTML = '名称: ' + file.name;
 		document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
 }
