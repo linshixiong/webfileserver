@@ -31,8 +31,16 @@ public class DeviceManager{
 	private StorageListHelper mStorageListHelper;
 	private StorageManager manager;
 
+	private static DeviceManager instance;
+	public static DeviceManager getInstance(Context context){
+		if(instance==null){
+			instance=new DeviceManager(context);
+		}
+		return instance;
+	}
+	
 	@SuppressLint("InlinedApi")
-	public DeviceManager(Context mContext)
+	private DeviceManager(Context mContext)
 	{
 		this.mContext = mContext;
 		/* 获取总设备列表 */

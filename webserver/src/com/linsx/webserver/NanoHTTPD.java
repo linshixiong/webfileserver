@@ -46,33 +46,7 @@ public class NanoHTTPD {
 	private File wwwroot;
 	private static final String TAG = "NanoHTTPD";
 	private Context mContext;
-	private DeviceManager dm;
-	private List<String> mDeviceList;
 
-	private void mkdir(String uri, File homeDir, String dir) {
-		Log.d(TAG, "mkdir uri=" + uri + ",dir=" + dir + ",home=" + homeDir);
-		if (dir == null || dir.trim().equals("")) {
-			return;
-		}
-		File root = new File(homeDir, uri);
-		if (root.exists() && root.canWrite()) {
-			File newDir = new File(root, dir);
-			newDir.mkdirs();
-		}
-	}
-
-	private void deleteFile(String uri, File homeDir, String file) {
-
-		Log.d(TAG, "delete uri=" + uri + ",file=" + file + ",home=" + homeDir);
-		if (file == null || file.trim().equals("")) {
-			return;
-		}
-		File root = new File(homeDir, uri);
-		if (root.exists() && root.canWrite()) {
-			File targetFile = new File(root, file);
-			targetFile.delete();
-		}
-	}
 
 	/**
 	 * HTTP response. Return one of these from serve().
@@ -161,7 +135,6 @@ public class NanoHTTPD {
 		myTcpPort = port;
 		this.wwwroot = wwwroot;
 		this.mContext = context;
-		dm = new DeviceManager(mContext);
 		start();
 	}
 
@@ -333,8 +306,7 @@ public class NanoHTTPD {
 				if (webRoot) {
 					homeDir = wwwroot;
 				} else {
-					mDeviceList = dm.getMountedDevicesList();
-					homeDir = getHomeDir(uri);
+					homeDir = Utils.getHomeDir(uri);
 				}
 
 				if (method.equalsIgnoreCase("POST")) {
@@ -488,12 +460,12 @@ public class NanoHTTPD {
 
 						String mkdir = parms.getProperty("mkdir", "").trim();
 						if (!mkdir.equals("")) {
-							mkdir(uri, homeDir, mkdir);
+							Utils.mkdir(uri, homeDir, mkdir);
 						}
 						String deleteFile = parms.getProperty("delete", "")
 								.trim();
 						if (!deleteFile.equals("")) {
-							deleteFile(uri, homeDir, deleteFile);
+							Utils.deleteFile(uri, homeDir, deleteFile);
 						}
 					}
 				}
@@ -528,23 +500,7 @@ public class NanoHTTPD {
 			}
 		}
 
-		private File getHomeDir(String uri) {
-
-			if (uri.equals("/") || uri.equals("")) {
-				return null;
-			}
-
-			if (mDeviceList != null) {
-				for (String volume : mDeviceList) {
-					File file = new File(volume);
-					if (uri.startsWith("/" + file.getName())) {
-						return file.getParentFile();
-					}
-				}
-			}
-
-			return null;
-		}
+		
 
 		/**
 		 * Decodes the sent headers and loads the data into java Properties' key
@@ -829,86 +785,9 @@ public class NanoHTTPD {
 		private Socket mySocket;
 	}
 
-	public String getGalleryListString(List<File> files) {
-		StringBuilder sb = new StringBuilder();
 
-		for (int i = 0; i < files.size(); ++i) {
+	
 
-			File file = files.get(i);
-			sb.append(String.format("{ url: '%s', caption: '%s'},\n",
-					file.getName(), file.getName()));
-		}
-
-		return sb.toString();
-	}
-
-	public String getFileListString(List<File> files, String uri,boolean isIE) {
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < files.size(); ++i) {
-
-			File file = files.get(i);
-			String data_icon = file.isDirectory() ? "folder" : "file";
-			if (uri.equals("/")) {
-				uri = "";
-			}
-			
-			String href = file.isDirectory() ? uri + "/"
-					+ files.get(i).getName() + "/" : "#";
-			href = href.replace("//", "/");
-			String img_src = null;
-
-			if (file.isDirectory()) {
-				img_src = "/images/folder.png?webroot=true";
-			} else {
-				img_src = "/images/file.png?webroot=true";
-
-				String extensionName = getExtensionName(file.getName());
-
-				String mime = theMimeTypes.get(extensionName.toLowerCase());
-				Log.d(TAG, "getMimeTypeFromExtension " + mime + " form "
-						+ extensionName);
-				if (mime != null) {
-
-					if (mime.startsWith("video")) {
-						img_src = "/images/video.png?webroot=true";
-					} else if (mime.startsWith("audio")) {
-						img_src = "/images/audio.png?webroot=true";
-					} else if (mime.startsWith("image")) {
-						img_src = "/images/image.png?webroot=true";
-					}
-
-				}
-
-			}
-
-			sb.append(String.format(
-					"<li onclick='FileitemClick(this)' isDirectory='%b'"
-							+ " fileSize='%d'" + " data-icon='%s' >"
-							+ "<a href='%s' " + " data-transition='none' "
-							+ "><img src='%s'"
-							+ " alt='%s' class='ui-li-icon' />%s</a></li>\n",
-					file.isDirectory(),
-					file.isDirectory() ? -1 : file.length(), data_icon, href,
-					img_src, file.getName(), file.getName()));
-
-		}
-		return sb.toString();
-	}
-
-	private List<File> getDeviceVolumes() {
-
-		ArrayList<File> files = new ArrayList<File>();
-
-		if (mDeviceList != null) {
-
-			for (String s : mDeviceList) {
-				files.add(new File(s));
-			}
-		}
-
-		return files;
-	}
 
 	/**
 	 * Serves file from homeDir and its' subdirectories (only). Uses only URI,
@@ -999,7 +878,7 @@ public class NanoHTTPD {
 
 				List<File> files = null;
 				if (f == null) {
-					files = getDeviceVolumes();
+					files =Utils.getDeviceVolumes();
 				} else if (f.canRead()) {
 					files = Arrays.asList(f.listFiles(filter));
 
@@ -1023,7 +902,7 @@ public class NanoHTTPD {
 					StringBuilder sb = new StringBuilder();
 
 					if (method.equalsIgnoreCase("post")) {
-						sb.append(getFileListString(files, uri,isIEBrowser));
+						sb.append(Utils.getFileListString(files, uri));
 					} else {
 						BufferedReader br = new BufferedReader(new FileReader(
 								indexFile));
@@ -1034,7 +913,7 @@ public class NanoHTTPD {
 							}
 
 							if (r.trim().equalsIgnoreCase("{file_list_data}")) {
-								r = getFileListString(files, uri,isIEBrowser);
+								r = Utils.getFileListString(files, uri);
 
 							}
 							sb.append(r);
@@ -1068,7 +947,7 @@ public class NanoHTTPD {
 
 				int dot = f.getCanonicalPath().lastIndexOf('.');
 				if (dot >= 0)
-					mime = theMimeTypes.get(f.getCanonicalPath()
+					mime = Mime.theMimeTypes.get(f.getCanonicalPath()
 							.substring(dot + 1).toLowerCase());
 				if (mime == null)
 					mime = MIME_DEFAULT_BINARY;
@@ -1091,7 +970,7 @@ public class NanoHTTPD {
 										if (dot <= 0) {
 											return false;
 										}
-										String type = theMimeTypes.get(pathname
+										String type = Mime.theMimeTypes.get(pathname
 												.getCanonicalPath()
 												.substring(dot + 1)
 												.toLowerCase());
@@ -1151,7 +1030,7 @@ public class NanoHTTPD {
 
 									if (r.trim().contains("{gallery_items}")) {
 
-										r = getGalleryListString(files);
+										r = Utils.getGalleryListString(files);
 									}
 									if (r.trim().contains("instance.show")) {
 
@@ -1309,38 +1188,9 @@ public class NanoHTTPD {
 		}
 	}
 
-	private static String getExtensionName(String filename) {
-		if ((filename != null) && (filename.length() > 0)) {
-			int dot = filename.lastIndexOf('.');
-			if ((dot > -1) && (dot < (filename.length() - 1))) {
-				return filename.substring(dot + 1);
-			}
-		}
-		return filename;
-	}
 
-	/**
-	 * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
-	 */
-	private static Hashtable<String, String> theMimeTypes = new Hashtable<String, String>();
-	static {
-		StringTokenizer st = new StringTokenizer("css		text/css "
-				+ "htm		text/html " + "html		text/html " + "xml		text/xml "
-				+ "txt		text/plain " + "asc		text/plain " + "gif		image/gif "
-				+ "jpg		image/jpeg " + "jpeg		image/jpeg " + "png		image/png "
-				+ "bmp image/bmp " + "mp3		audio/mpeg " + "wma audio/wma "
-				+ "m3u		audio/mpeg-url " + "mp4		video/mp4 "
-				+ "ogv		video/ogg " + "flv		video/x-flv "
-				+ "mov		video/quicktime " + "3gp  video/3gp "
-				+ "rmvb  video/rmvb " + "swf		application/x-shockwave-flash "
-				+ "js			application/javascript " + "pdf		application/pdf "
-				+ "doc		application/msword " + "ogg		application/x-ogg "
-				+ "zip		application/octet-stream "
-				+ "exe		application/octet-stream "
-				+ "class		application/octet-stream ");
-		while (st.hasMoreTokens())
-			theMimeTypes.put(st.nextToken(), st.nextToken());
-	}
+
+
 
 	private static int theBufferSize = 16 * 1024;
 

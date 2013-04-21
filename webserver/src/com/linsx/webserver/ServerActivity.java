@@ -58,7 +58,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 
 		Settings.init(this);
-
+		Utils.setGlobalContext(this);
 		if (!WebFileInstaller.isWebfileInstalled(this)) {
 			showInstallProgress();
 			installWebFiles();

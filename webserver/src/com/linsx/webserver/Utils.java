@@ -1,5 +1,6 @@
 package com.linsx.webserver;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -8,9 +9,8 @@ import java.net.SocketException;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -27,15 +27,28 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.util.Log;
 
 public class Utils {
 	private static final String QRCODE_API = "http://chart.apis.google.com/chart?cht=qr&chs=250x250&chl=%s";
-
+	private static final String TAG = "Utils";
+	private static Context sContext;
+	
+	public static void setGlobalContext(Context context){
+		
+		sContext=context;
+	}
+	
+	public static Context getGlobalContext(){
+		return sContext;
+	}
+	
 	public static String getLocalIpAddress() {
 		try {
 			String ipv4;
@@ -160,30 +173,146 @@ public class Utils {
 
 	}
 
-	public static Bitmap getimage(String srcPath) {
-		BitmapFactory.Options newOpts = new BitmapFactory.Options();
-		// 开始读入图片，此时把options.inJustDecodeBounds 设回true了
-		newOpts.inJustDecodeBounds = true;
-		Bitmap bitmap = BitmapFactory.decodeFile(srcPath, newOpts);// 此时返回bm为空
-
-		newOpts.inJustDecodeBounds = false;
-		int w = newOpts.outWidth;
-		int h = newOpts.outHeight;
-		// 现在主流手机比较多是800*480分辨率，所以高和宽我们设置为
-		float hh = 800f;// 这里设置高度为800f
-		float ww = 480f;// 这里设置宽度为480f
-		// 缩放比。由于是固定比例缩放，只用高或者宽其中一个数据进行计算即可
-		int be = 1;// be=1表示不缩放
-		if (w > h && w > ww) {// 如果宽度大的话根据宽度固定大小缩放
-			be = (int) (newOpts.outWidth / ww);
-		} else if (w < h && h > hh) {// 如果高度高的话根据宽度固定大小缩放
-			be = (int) (newOpts.outHeight / hh);
+	public static void mkdir(String uri, File homeDir, String dir) {
+		Log.d(TAG, "mkdir uri=" + uri + ",dir=" + dir + ",home=" + homeDir);
+		if (dir == null || dir.trim().equals("")) {
+			return;
 		}
-		if (be <= 0)
-			be = 1;
-		newOpts.inSampleSize = be;// 设置缩放比例
-		// 重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
-		bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
-		return bitmap;
+		File root = new File(homeDir, uri);
+		if (root.exists() && root.canWrite()) {
+			File newDir = new File(root, dir);
+			newDir.mkdirs();
+		}
 	}
+
+	public static void deleteFile(String uri, File homeDir, String file) {
+
+		Log.d(TAG, "delete uri=" + uri + ",file=" + file + ",home=" + homeDir);
+		if (file == null || file.trim().equals("")) {
+			return;
+		}
+		File root = new File(homeDir, uri);
+		if (root.exists() && root.canWrite()) {
+			File targetFile = new File(root, file);
+			targetFile.delete();
+		}
+	}
+	
+	
+	public static File getHomeDir(String uri) {
+
+		if(sContext==null){
+			return null;
+		}
+		if (uri.equals("/") || uri.equals("")) {
+			return null;
+		}
+		List<String> deviceList=DeviceManager.getInstance(sContext).getMountedDevicesList();
+		if (deviceList != null) {
+			for (String volume : deviceList) {
+				File file = new File(volume);
+				if (uri.startsWith("/" + file.getName())) {
+					return file.getParentFile();
+				}
+			}
+		}
+
+		return null;
+	}
+	
+	public static List<File> getDeviceVolumes() {
+		if(sContext==null){
+			return null;
+		}
+		ArrayList<File> files = new ArrayList<File>();
+		List<String> deviceList=DeviceManager.getInstance(sContext).getMountedDevicesList();
+		if (deviceList != null) {
+
+			for (String s : deviceList) {
+				files.add(new File(s));
+			}
+		}
+
+		return files;
+	}
+	
+	public static String getExtensionName(String filename) {
+		if ((filename != null) && (filename.length() > 0)) {
+			int dot = filename.lastIndexOf('.');
+			if ((dot > -1) && (dot < (filename.length() - 1))) {
+				return filename.substring(dot + 1);
+			}
+		}
+		return filename;
+	}
+	
+	public static String getGalleryListString(List<File> files) {
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < files.size(); ++i) {
+
+			File file = files.get(i);
+			sb.append(String.format("{ url: '%s', caption: '%s'},\n",
+					file.getName(), file.getName()));
+		}
+
+		return sb.toString();
+	}
+
+	
+	public static String getFileListString(List<File> files, String uri) {
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < files.size(); ++i) {
+
+			File file = files.get(i);
+			String data_icon = file.isDirectory() ? "folder" : "file";
+			if (uri.equals("/")) {
+				uri = "";
+			}
+			
+			String href = file.isDirectory() ? uri + "/"
+					+ files.get(i).getName() + "/" : "#";
+			href = href.replace("//", "/");
+			String img_src = null;
+
+			if (file.isDirectory()) {
+				img_src = "/images/folder.png?webroot=true";
+			} else {
+				img_src = "/images/file.png?webroot=true";
+
+				String extensionName = Utils.getExtensionName(file.getName());
+
+				String mime = Mime.theMimeTypes.get(extensionName.toLowerCase());
+				Log.d(TAG, "getMimeTypeFromExtension " + mime + " form "
+						+ extensionName);
+				if (mime != null) {
+
+					if (mime.startsWith("video")) {
+						img_src = "/images/video.png?webroot=true";
+					} else if (mime.startsWith("audio")) {
+						img_src = "/images/audio.png?webroot=true";
+					} else if (mime.startsWith("image")) {
+						img_src = "/images/image.png?webroot=true";
+					}
+
+				}
+
+			}
+
+			sb.append(String.format(
+					"<li onclick='FileitemClick(this)' isDirectory='%b'"
+							+ " fileSize='%d'" + " data-icon='%s' >"
+							+ "<a href='%s' " + " data-transition='none' "
+							+ "><img src='%s'"
+							+ " alt='%s' class='ui-li-icon' />%s</a></li>\n",
+					file.isDirectory(),
+					file.isDirectory() ? -1 : file.length(), data_icon, href,
+					img_src, file.getName(), file.getName()));
+
+		}
+		return sb.toString();
+	}
+
+
 }
