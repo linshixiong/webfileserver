@@ -26,7 +26,7 @@
         <!-- Home -->
         <div data-role="page" id="page1" data-theme="b">
 			 <script >
-				//$(document).on("pageinit",pageInit);
+				$(document).on("pageinit",pageInit);
 			 	$(document).on("pageshow", pageShow);
 			 </script>
             <div data-role="header" data-position="fixed" data-theme="a" id="header">
@@ -78,12 +78,13 @@
             <div data-role="popup" id="uploadDialog" data-dismissible="false" style="max-width:400px;"
             class="ui-corner-all"  data-theme="b">
 
-                <form id="formUploadFile" method="POST" action="." data-theme="b" enctype="multipart/form-data">
+                <form method="POST" action="." data-theme="b" >
                     <div style="padding:10px 20px;" data-theme="b" >
                         <h3>
-                            <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete" data-iconpos="notext" class="ui-btn-right">
-							Close
-						</a> 上传档案
+                                          <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete"
+                data-iconpos="notext" class="ui-btn-right">
+                    Close
+					</a> 上传档案
                         </h3>
                         <input type="file" id="file">
                         <div id="fileName">

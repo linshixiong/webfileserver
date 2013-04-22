@@ -22,6 +22,9 @@
 		$("#filelist").html(html);
 		$("#filelist").listview('refresh'); 
 		$("#delete_button").hide();
+		$( "#filelist a" ).each(function() {
+					$( this ).attr("data-ajax",false );
+		});
 	}
 		
 	function pageShow(event,ui){
@@ -264,7 +267,7 @@
 
 	var xhr;
 	function uploadFile() {
-		if(isHTML5Browser()){
+		
 			var fd = new FormData();
 			fd.append("file", document.getElementById('file').files[0]);
         	xhr = new XMLHttpRequest();
@@ -275,11 +278,7 @@
 			xhr.addEventListener("abort", uploadCanceled, false);
 			xhr.open("POST", ".");
 			xhr.send(fd);
-		}else{
-			//$("#formUploadFile").submit();
-			//alert("浏览器不支持怎么办呢");
-		}
-
+	
       }
 	  function uploadStart(evt){
 		  //console.log("uploadStart");

@@ -21,7 +21,10 @@
 		//console.log("pageInit");
 
 		
-
+		$( "#downloadDialog" ).on( "popupafterclose", function( event, ui ) {	
+			console.log("downloadDialog popupafterclose");
+			$( "#downloadDialog" ).popup( "close");
+		});
 	}
 	
 	function refreshList(html){
@@ -29,20 +32,12 @@
 		$("#filelist").listview('refresh'); 
 		$("#delete_button").hide();
 	}
-		
-	function pageShow(event,ui){
-		//console.log("page show");
-		$(ui.prevPage).remove();
-		/*
-		var browser= getBrowserVersion();
-		if(browser.ie){
-			this.element.find( "a" ).each(function() {
-				//var href = base + $( this ).attr( "href" );
-				//$( this ).attr("data-ajax",false );
-				});
-		}*/
-		
-	}
+	
+		function pageShow(event,ui){
+			console.log("page show");
+			$(ui.prevPage).remove();
+			
+		}
 	
 	function showMkdirDialog(){
 		var uri= window.location.pathname;
@@ -155,11 +150,7 @@
 			$("#download_file_url").attr("download",fileName);
 			
 			$( "#downloadDialog" ).popup( "option", "transition", "pop" );
-			$( "#downloadDialog" ).on( "popupafterclose", function( event, ui ) {	
-				//console.log("downloadDialog popupafterclose");
-				$( "#downloadDialog" ).popup( "close");
-			});
-			$( "#downloadDialog" ).popup( "open" );
+			$( "#downloadDialog" ).popup( "open", "" );
 
 		}
 			
@@ -207,32 +198,6 @@
         return f;    
     }    
 	
-	function isHTML5Browser(){
-		var browser=getBrowserInfo();
-		
-		if(browser.ie&&browser.ie!="10.0"){
-			return false;
-		}else{
-			return true;
-		}
-		
-	}
-	
-	function getBrowserInfo(){
-		var Sys = {};
-        var ua = navigator.userAgent.toLowerCase();
-        window.ActiveXObject ? Sys.ie = ua.match(/msie ([\d.]+)/)[1] :
-        document.getBoxObjectFor ? Sys.firefox = ua.match(/firefox\/([\d.]+)/)[1] :
-        window.MessageEvent && !document.getBoxObjectFor ? Sys.chrome = ua.match(/chrome\/([\d.]+)/)[1] :
-        window.opera ? Sys.opera = ua.match(/opera.([\d.]+)/)[1] :
-        window.openDatabase ? Sys.safari = ua.match(/version\/([\d.]+)/)[1] : 0;
-		return Sys;
-	}
-	
-	function getFileName(path){
-		var arr=path.split('\\');
-		return arr[arr.length-1];
-	}
 	function selectFile()
 	{
 		var uri= window.location.pathname;
@@ -244,21 +209,12 @@
 		}
 		
 		$("#file").change(function () {
-			//alert("file change");
-            var file ;
-			var browser=getBrowserInfo();
-			if(browser.ie){
-				file=new Object();
-				file.name=getFileName($(this).val());
-				file.size=-1;
-			}
-			else{
-				file=document.getElementById('file').files[0];
-			}
+			
+            var file = document.getElementById('file').files[0];
 			if (file) {
 				var fileSize = getFileSize(file.size);
 
-				$("#uploadDialog").popup("open","");
+				$("#uploadDialog").popup("open");
 			}
 			document.getElementById('fileName').innerHTML = '名称: ' + file.name;
 			document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
@@ -299,23 +255,16 @@
 
 	var xhr;
 	function uploadFile() {
-		if(isHTML5Browser()){
-			var fd = new FormData();
-			fd.append("file", document.getElementById('file').files[0]);
-        	xhr = new XMLHttpRequest();
-			xhr.upload.addEventListener("progress", uploadProgress, false);
-			xhr.upload.addEventListener("loadstart", uploadStart, false);
-			xhr.addEventListener("load", uploadComplete, false);
-			xhr.addEventListener("error", uploadComplete, false);
-			xhr.addEventListener("abort", uploadCanceled, false);
-			xhr.open("POST", ".");
-			//xhr.setRequestHeader("Content-Type","multipart/form-data");  
-			xhr.send(fd);
-		}else{
-			//$("#formUploadFile").submit();
-			//alert("浏览器不支持怎么办呢");
-		}
-
+        var fd = new FormData();
+        fd.append("file", document.getElementById('file').files[0]);
+        xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", uploadProgress, false);
+		xhr.upload.addEventListener("loadstart", uploadStart, false);
+        xhr.addEventListener("load", uploadComplete, false);
+        xhr.addEventListener("error", uploadComplete, false);
+        xhr.addEventListener("abort", uploadCanceled, false);
+        xhr.open("POST", ".");
+        xhr.send(fd);
       }
 	  function uploadStart(evt){
 		  //console.log("uploadStart");
