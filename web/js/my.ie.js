@@ -337,7 +337,10 @@
 					//console.log("play video "+fileName);
 					window.open (fileName+'?action=play') ;
 					
-				}else
+				}else if(extName=="txt"||extName=="pdf"){
+					window.open (fileName+'?action=play') ;
+				}
+				else
 				{
 					showToast("此文件类型无法直接打开，请下载此文件!");
 					return;
