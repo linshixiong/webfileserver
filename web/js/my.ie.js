@@ -57,10 +57,9 @@
 	function deleteFile(){
 		var fileName=fileSelectToDelete;
 		var xhr = new XMLHttpRequest();
- 
 		xhr.addEventListener("load", deleteComplete, false);
 		xhr.addEventListener("error", deleteComplete, false);
-		xhr.open("POST", ".");
+		xhr.open("POST",encodeURI(document.location.href));
 		xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded"); 
 		xhr.send("delete="+fileName);
 		var dialog=$("#deleteFileDialog");
@@ -242,7 +241,7 @@
 
 		xhr.addEventListener("load", mkdirComplete, false);
 		xhr.addEventListener("error", mkdirComplete, false);
-		xhr.open("POST", ".");
+		xhr.open("POST",encodeURI(document.location.href));
 		xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");  
 		xhr.send("mkdir="+dirName);
 		$("#mkdirDialog").popup("close");
