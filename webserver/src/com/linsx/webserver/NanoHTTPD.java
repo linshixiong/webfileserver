@@ -267,8 +267,8 @@ public class NanoHTTPD {
 					return;
 				}
 				String uri = pre.getProperty("uri");
-				 Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
-
+				Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
+							 
 				long size = 0x7FFFFFFFFFFFFFFFl;
 				String contentLength = header.getProperty("content-length");
 
@@ -794,13 +794,36 @@ public class NanoHTTPD {
 		Log.d(TAG, "serveFile");
 		boolean isIEBrowser = false;
 		String userAngentString = header.getProperty("user-agent");
-
+		
 		Log.d(TAG, "userAngentString:" + userAngentString);
 
 		if (userAngentString != null) {
 			isIEBrowser = userAngentString.toLowerCase().contains("msie");
 		}
+		
+		
+		String userLanguageString=Locale.getDefault().getLanguage();
+		Log.d(TAG, "userLanguageString:" + userLanguageString);
+		String language="";
+		if(userLanguageString!=null){
+			
+			
+			if(userLanguageString.equals("zh")){
+				if("cn".equalsIgnoreCase(Locale.getDefault().getCountry()))
+				{	
+					language="zh_CN";//简体中文
+				}else {
+					language="zh_TW";//繁体中文
+				}
+			}
+			else if(userLanguageString.equals("ja")) {
+				language="ja";//日文
+			}
+		}
+		
+		
 		Log.d(TAG, "isIEBrowser:" + isIEBrowser);
+		Log.d(TAG, "language :"+language);
 		// Make sure we won't die of an exception later
 		if (homeDir != null && !homeDir.isDirectory()) {
 			res = new Response(HTTP_INTERNALERROR, MIME_PLAINTEXT,
@@ -852,8 +875,8 @@ public class NanoHTTPD {
 				return res;
 
 			}
-
-			File indexFile = new File(wwwroot, isIEBrowser ? "index_ie.html"
+			File indexFileRoot=new File(wwwroot,language);
+			File indexFile = new File(indexFileRoot, isIEBrowser ? "index_ie.html"
 					: "index.html");
 
 			String msg = null;
@@ -951,7 +974,8 @@ public class NanoHTTPD {
 				if (action.endsWith("play")) {
 
 					if (mime.contains("image")) {
-						File galleryHtml = new File(wwwroot, "gallery.html");
+						File indexFileRoot=new File(wwwroot,language);
+						File galleryHtml = new File(indexFileRoot, "gallery.html");
 
 						if (galleryHtml.exists()) {
 							FileFilter filter = new FileFilter() {
@@ -1059,7 +1083,8 @@ public class NanoHTTPD {
 
 					else if (mime.contains("audio/mpeg")
 							|| mime.contains("mp4")) {
-						File playerHtml = new File(wwwroot, "player.html");
+						File indexFileRoot=new File(wwwroot,language);
+						File playerHtml = new File(indexFileRoot, "player.html");
 
 						if (playerHtml.exists()) {
 							String msg = null;
@@ -1082,7 +1107,7 @@ public class NanoHTTPD {
 												: "video";
 										r = String.format(
 												" <%s  src=\"%s\" controls=\"controls\" autoplay=\"autoplay\">"
-														+ "您的浏览器不支持%s播放。"
+														+ mContext.getString(R.string.browser_no_html5_support)
 														+ " </%s>", type,
 												f.getName(), type, type);
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name ="app_name" >インターネットファイル共有</string>
+<string name ="action_settings" >設置</string>
+<string name ="title_activity_server" >インターネットファイル共有</string>
+<string name ="turn_on_server" >を开けて配信</string>
+<string name ="turn_off_server" >閉鎖配信</string>
+<string name ="server_off" >ファイル共有サービスが閉鎖の</string>
+<string name ="server_on" >共有が開かれて、、ブラウザーで入力する以下のアドレスを訪問し共有</string>
+<string name ="server_suspend" >ファイル共有の側に立って暂停</string>
+<string name ="storage_off" >注意:設備のストレージ機器不用な</string>
+<string name ="wifi_off" >けち用のネットワーク接続</string>
+<string name ="web_file_extract" >が臭虫… </string>
+<string name ="notification_title" >ファイル共有して運営している</string>
+<string name ="notification_content" >サービスあて先は. s </string>
+<string name ="server_settings" >サーバー設置</string>
+<string name ="server_port" >サーバーポート</string>
+<string name ="server_port_summary" >サーバーポートは. d </string>
+<string name ="server_port_dialog_title" >入力従来のサーバーのポート</string>
+<string name ="server_port_invalid" >端スローガンに介在しなければならない1024と65535間</string>
+<string name ="server_port_occupied" >ポート. dは他のプログラムの占用:恐れ入りますが、」設置」メニューから新しい端子に設置されている。</string>
+<string name="browser_no_html5_support">Your browser do not support %s playback</string>
+<string name ="about" >ねぶら</string>
+<string name ="version" >バージョン番号</string>
+</resources >

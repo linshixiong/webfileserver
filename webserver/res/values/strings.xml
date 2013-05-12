@@ -20,6 +20,7 @@
 	<string name="server_port_dialog_title">Input the server port</string>
 	<string name="server_port_invalid">Port number must be between 1024 and 65535</string>
 	<string name="server_port_occupied">Port %d is occupied by others, please set new port in settings menu.</string>
+	<string name="browser_no_html5_support">Your browser do not support %s playback</string>
 	<string name="about">About</string>
 	<string name="version">Version</string>
 </resources>

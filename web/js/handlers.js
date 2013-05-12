@@ -13,8 +13,8 @@ function fileQueued(file) {
 		var fileSize = getFileSize(file.size);
 		file_id=file.id;
 		//alert(file_id);
-		document.getElementById('fileName').innerHTML = '名称: ' + file.name;
-		document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
+		document.getElementById('fileName').innerHTML = string_file_name + file.name;
+		document.getElementById('fileSize').innerHTML = string_file_size + fileSize;
 }
 
 function fileQueueError(file, errorCode, message) {
@@ -78,7 +78,7 @@ function uploadProgress(file, bytesLoaded, bytesTotal) {
 	var percent = Math.ceil((bytesLoaded / bytesTotal) * 100);
 	
 	
-     document.getElementById('progressNumber').innerHTML = "正在上传，完成"+ percent + '%';
+     document.getElementById('progressNumber').innerHTML = string_uploading_with_progress+ percent + '%';
       
 }
 

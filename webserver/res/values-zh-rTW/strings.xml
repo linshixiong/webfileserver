@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+     <string name="app_name">網路文件共享</string>
+    <string name="action_settings">設置</string>
+    <string name="title_activity_server">網路文件共享</string>
+	<string name="turn_on_server">打開共享服務</string>
+	<string name="turn_off_server">關閉共享服務</string>
+	<string name="server_off">文件共享服務已關閉</string>
+	<string name="server_on">共享已開啓,在浏覽器中輸入以下網址訪問共享</string>
+	<string name="server_suspend">文件共享服務已暫停</string>
+	<string name="storage_off">注意:設備存儲設備不可用</string>
+	<string name="wifi_off">無可用的網絡連接</string>
+	<string name="web_file_extract">正在初始化...</string>
+	<string name="notification_title">文件共享正在運行</string>
+	<string name="notification_content">服務地址：%s</string>
+	<string name="server_settings">服務器設置</string>
+	<string name="server_port">服務器端口</string>
+	<string name="server_port_summary">服務器端口是 %d</string>
+	<string name="server_port_dialog_title">輸入新的服務器端口</string>
+	<string name="server_port_invalid">端口號必須介于1024和65535之間</string>
+	<string name="server_port_occupied">端口%d被其他程序占用, 請在\"設置\"菜單中設置新的端口.</string>
+	<string name="browser_no_html5_support">你的瀏覽器不支持%s播放</string>
+	<string name="about">關于</string>
+	<string name="version">版本號</string>
+</resources>

@@ -18,10 +18,8 @@
 		
         <script src="/js/jquery.mobile-1.3.0.min.js?webroot=true">
         </script>
-         <script src="/js/my.js?webroot=true">
-        </script>
-		<script src="/js/strings_en.js?webroot=true">
-        </script>
+        <script src="/js/my.js?webroot=true"></script>
+		<script src="/js/strings_zh_cn.js?webroot=true"></script>
     </head>
     
     <body>
@@ -33,18 +31,18 @@
 			 </script>
             <div data-role="header" data-position="fixed" data-theme="a" id="header">
                 <a href="../" data-transition="none"  data-theme="a" data-role="button" class="btn-back"  data-icon="back"> 
-                    Back
+                    返回
                 </a>
                 <h1>
-                    File List
+                    文件列表
                 </h1>
 				 <a href="javascript:showDeleteConfirm()" data-transition="none" id="delete_button"  data-role="button" class="btn-back" data-icon="delete"> 
-                    Delete
+                    删除
                 </a>
             </div>
             <div data-role="content" id="content">
 				<div  id="divider">
-                       <img src="/images/fangdajin.png?webroot=true"/><span>Filter items...</span>
+                       <img src="/images/fangdajin.png?webroot=true"/><span>过滤选项...</span>
                 </div>
                 <ul id="filelist" data-role="listview" data-divider-theme="a" data-inset="true"class="ui-listview">
 				{file_list_data}
@@ -55,23 +53,23 @@
                     <ul id="bottom_bar">
                         <li >
                             <a href="javascript:selectFile()"  data-icon="up" id="upload">
-                                 Upload File
+                                 上传文件
                             </a>
                         </li>
                         <li>
                             <a href="javascript:downloadFile()" data-icon="up" id="download">
-                               Download File
+                               下载文件
                             </a>
                         </li>
                         <li>
                             <a href="javascript:showMkdirDialog()"  data-icon="up" data-rel="popup" data-position-to="window" data-transition="pop"
                             id="mkdir">
-                                New Folder
+                                新建文件夹
                             </a>
                         </li>
                         <li>
                             <a href="javascript:openFile()" data-icon="up" id="action" >
-                                Open File
+                                打开文件
                             </a>
                         </li>
                     </ul>
@@ -86,7 +84,7 @@
                                           <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete"
                 data-iconpos="notext" class="ui-btn-right">
                     Close
-					</a> Upload File
+					</a> 上传文件
                         </h3>
                         <input type="file" id="file">
                         <div id="fileName">
@@ -97,11 +95,11 @@
                             <img src="/images/loading.gif?webroot=true" style="vertical-align:middle;"
                             />
                             <span id="progressNumber" style="vertical-align:middle;">
-                                Uploading...
+                                正在上传...
                             </span>
                         </div>
                         <button type="button" data-theme="b" data-icon="check" onclick="uploadFile()">
-                            Upload
+                            上传
                         </button>
                     </div>
                 </form>
@@ -109,24 +107,24 @@
             <div data-role="popup" id="downloadDialog" data-theme="c" class="ui-corner-all">
                 <div data-role="header" data-theme="a" class="ui-corner-top">
                     <h1>
-                        Download File
+                        下载文件
                     </h1>
                 </div>
                 <div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
                     <div style="padding:10px 20px;">
                         <h3 class="ui-title">
-                            Are you sure to download selected file?
+                            是否确定下载选择的文件？
                         </h3>
                         <p id="downloadFileName">
                         </p>
                         <p id="downloadFileSize">
                         </p>
                         <a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">
-                            Cancel
+                            取消
                         </a>
                         <a href="#" id="download_file_url"  onclick="startDownloadFile()" download=""
                         data-ajax="false" data-role="button" data-inline="true" data-theme="b">
-                            Download
+                            下载
                         </a>
                     </div>
                 </div>
@@ -141,14 +139,14 @@
                     <h3>
 						<a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete"
 							data-iconpos="notext" class="ui-btn-right" >close</a> 
-							New Folder
+							新建文件夹
                     </h3>
                     <label for="dir_name" class="ui-hidden-accessible">
-                        Folder Name:
+                        文件夹名称:
                     </label>
-                    <input type="text" id="dir_name" placeholder="Folder Name:" data-theme="b">
+                    <input type="text" id="dir_name" placeholder="文件夹名称:" data-theme="b">
                     <button data-theme="b" data-icon="check" onclick="mkdir()">
-                        OK
+                        确定
                     </button>
 
                 </div>
@@ -157,13 +155,13 @@
 			
 			<div data-role="popup" id="deleteFileDialog" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
 				<div data-role="header" data-theme="a" class="ui-corner-top">
-					<h1>Delete file?</h1>
+					<h1>删除文件?</h1>
 				</div>
 				<div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
-					<h3 class="ui-title">Are you sure to detele selected file?</h3>
+					<h3 class="ui-title">是否确定删除选择的文件?</h3>
 					<p id="fileNameDelete"></p>
-					<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">Cancel</a>
-					<a href="javascript:deleteFile()" data-role="button" data-inline="true" data-transition="flow" data-theme="b">Delete</a>
+					<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">取消</a>
+					<a href="javascript:deleteFile()" data-role="button" data-inline="true" data-transition="flow" data-theme="b">删除</a>
 				</div>
 			</div>
 			
