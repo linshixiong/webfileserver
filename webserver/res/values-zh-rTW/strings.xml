@@ -23,4 +23,7 @@
 	<string name="browser_no_html5_support">你的瀏覽器不支持%s播放</string>
 	<string name="about">關于</string>
 	<string name="version">版本號</string>
+	<string name="auto_start">自動啟動</string>
+	<string name="auto_start_on">伺服器將在係統啟動後自動啟動</string>
+	<string name="auto_start_off">伺服器自動啟動已被禁用</string>
 </resources>
