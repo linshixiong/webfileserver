@@ -31,6 +31,7 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -458,6 +459,26 @@ public class NanoHTTPD {
 						if (!deleteFile.equals("")) {
 							Utils.deleteFile(uri, homeDir, deleteFile);
 						}
+						
+						String remoteAction= parms.getProperty("remote_action", "")
+								.trim();
+						
+						if ("key".equals(remoteAction)) {
+							String keycode=parms.getProperty("data","");
+							Log.w(TAG, "keycode="+keycode);
+							Utils.sendKeyEvent(keycode);
+						}
+						
+						
+						if ("launch".equals(remoteAction)) {
+							String launch=parms.getProperty("data");
+							Log.w(TAG, "launch="+launch);
+							Intent intent=new Intent();
+							ComponentName component=ComponentName.unflattenFromString(launch);
+							intent.setComponent(component);
+							Utils.startActivitySafely(mContext,intent);
+						}
+						
 					}
 				}
 

@@ -3,6 +3,7 @@ package com.linsx.webserver;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -27,19 +28,29 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.view.IWindowManager;
+import android.os.ServiceManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
-
+import android.view.InputDevice;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
+import android.os.RemoteException;
+import android.content.Intent;
+import android.widget.Toast;
 public class Utils {
 	private static final String QRCODE_API = "http://chart.apis.google.com/chart?cht=qr&chs=250x250&chl=%s";
 	private static final String TAG = "Utils";
 	private static Context sContext;
-	
+	private static IWindowManager sWindowManager;
 	public static void setGlobalContext(Context context){
 		
 		sContext=context;
@@ -198,6 +209,48 @@ public class Utils {
 		}
 	}
 	
+	
+	
+    /**
+     * Send a single key event.
+     *
+     * @param event is a string representing the keycode of the key event you
+     * want to execute.
+     */
+    public static void sendKeyEvent(String event) {
+        int eventCode = Integer.parseInt(event);
+        long now = SystemClock.uptimeMillis();
+        Log.i("SendKeyEvent", event);
+        try {
+            KeyEvent down = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, eventCode, 0);
+            KeyEvent up = new KeyEvent(now, now, KeyEvent.ACTION_UP, eventCode, 0);
+            (IWindowManager.Stub
+                .asInterface(ServiceManager.getService("window")))
+                .injectKeyEvent(down, true);
+            (IWindowManager.Stub
+                .asInterface(ServiceManager.getService("window")))
+                .injectKeyEvent(up, true);
+        } catch (RemoteException e) {
+            Log.i("Input", "DeadOjbectException");
+        }
+    }
+
+	public static boolean startActivitySafely(Context context,Intent intent) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(intent);
+            return true;
+        } catch (ActivityNotFoundException e) {
+            //Toast.makeText(context, R.string.unable_to_launch, Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Unable to launch intent=" + intent, e);
+        } catch (SecurityException e) {
+            //Toast.makeText(context, R.string.unable_to_launch, Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Launcher does not have the permission to launch " + intent +
+                    ". Make sure to create a MAIN intent-filter for the corresponding activity " +
+                    "or use the exported attribute for this activity.intent=" + intent, e);
+        }
+        return false;
+    }
 	
 	public static File getHomeDir(String uri) {
 

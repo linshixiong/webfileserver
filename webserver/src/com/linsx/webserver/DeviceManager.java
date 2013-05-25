@@ -9,7 +9,6 @@ package com.linsx.webserver;
 import java.io.File;
 import java.util.ArrayList;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Environment;
 import android.os.storage.StorageManager;
@@ -28,7 +27,7 @@ public class DeviceManager{
 	private ArrayList<String> internalDevicesList;
 	private ArrayList<String> mountedDevicesList;
 	private Context mContext;
-	private StorageListHelper mStorageListHelper;
+	//private StorageListHelper mStorageListHelper;
 	private StorageManager manager;
 
 	private static DeviceManager instance;
@@ -39,7 +38,6 @@ public class DeviceManager{
 		return instance;
 	}
 	
-	@SuppressLint("InlinedApi")
 	private DeviceManager(Context mContext)
 	{
 		this.mContext = mContext;
@@ -47,8 +45,8 @@ public class DeviceManager{
 		totalDevicesList = new ArrayList<String>();
 		String[] volumeList;
 		manager = (StorageManager)mContext.getSystemService(Context.STORAGE_SERVICE);
-		mStorageListHelper=new StorageListHelper(mContext);
-		volumeList = mStorageListHelper.getVolumePaths();
+		//mStorageListHelper=new StorageListHelper(mContext);
+		volumeList = manager.getVolumePaths();
 		for(int i = 0; i < volumeList.length; i ++)
 		{
 			totalDevicesList.add(volumeList[i]);
@@ -116,7 +114,7 @@ public class DeviceManager{
 		{
 	        for(int i = 0; i < totalDevicesList.size(); i++)
 	        {
-	            state = mStorageListHelper.getVolumeState(totalDevicesList.get(i));
+	            state = manager.getVolumeState(totalDevicesList.get(i));
 	           	if(state.equals(Environment.MEDIA_MOUNTED))
 	           	{
 	           		Log.d(TAG,"totalDevicesList.get("+i+")="+totalDevicesList.get(i));

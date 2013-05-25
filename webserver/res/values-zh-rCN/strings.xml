@@ -26,4 +26,5 @@
 	<string name="auto_start">自动启动</string>
 	<string name="auto_start_on">服务器将在系统启动后自动启动</string>
 	<string name="auto_start_off">服务器自动启动已被禁用</string>
+	<string name="unable_to_launch">无法加载应用</string>
 </resources>
