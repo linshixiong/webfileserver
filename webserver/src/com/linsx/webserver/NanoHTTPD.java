@@ -31,6 +31,7 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
+import android.R.bool;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -906,21 +907,11 @@ public class NanoHTTPD {
 			File indexFileRoot=new File(wwwroot,language);
 			
 			File indexFile=null;
-			if(homeDir==null){
-				
-				String actionMain=parms.getProperty("action");
-				if(actionMain==null||actionMain.trim().equals("")){
-					indexFile= new File(indexFileRoot,  "index.html");
-				}else if(action.equals("file")) {
-					indexFile= new File(indexFileRoot, isIEBrowser ? "file_ie.html"
-							: "file.html");
-				}
-				else if(action.equals("remote")) {
-					indexFile= new File(indexFileRoot,  "remote.html");
-				}else {
-					indexFile= new File(indexFileRoot,  "index.html");
-				}
-			}else {
+		
+			if(homeDir==null){		
+				indexFile= new File(indexFileRoot,  "index.html");
+			}
+			else {
 				indexFile= new File(indexFileRoot, isIEBrowser ? "file_ie.html"
 						: "file.html");
 			}
@@ -942,7 +933,9 @@ public class NanoHTTPD {
 				};
 
 				List<File> files = null;
+				boolean isVolumeList=false;
 				if (f == null) {
+					isVolumeList=true;
 					files =Utils.getDeviceVolumes();
 				} else if (f.canRead()) {
 					files = Arrays.asList(f.listFiles(filter));
@@ -967,7 +960,7 @@ public class NanoHTTPD {
 					StringBuilder sb = new StringBuilder();
 
 					if (method.equalsIgnoreCase("post")) {
-						sb.append(Utils.getFileListString(files, uri));
+						sb.append(Utils.getFileListString(files, uri,isVolumeList));
 					} else {
 						BufferedReader br = new BufferedReader(new FileReader(
 								indexFile));
@@ -978,7 +971,7 @@ public class NanoHTTPD {
 							}
 
 							if (r.trim().equalsIgnoreCase("{file_list_data}")) {
-								r = Utils.getFileListString(files, uri);
+								r = Utils.getFileListString(files, uri,isVolumeList);
 
 							}
 							sb.append(r);

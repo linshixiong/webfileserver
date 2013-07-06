@@ -32,7 +32,7 @@ public class HttpService extends Service {
 	private IntentFilter filter;
 	private ConnectivityManager connMgr;
 	private Builder builder;
-	public static final boolean DEBUG=true;
+	public static final boolean DEBUG=false;
 
 	
 	@Override

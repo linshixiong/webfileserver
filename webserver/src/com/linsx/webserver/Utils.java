@@ -356,7 +356,8 @@ public class Utils {
 		return sb.toString();
 	}
 
-	public static String getFileListString(List<File> files, String uri) {
+	public static String getFileListString(List<File> files, String uri,
+			boolean isVolumeList) {
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 0; i < files.size(); ++i) {
@@ -397,15 +398,23 @@ public class Utils {
 
 			}
 
-			sb.append(String.format(
-					"<li onclick='FileitemClick(this)' isDirectory='%b'"
-							+ " fileSize='%d'" + " data-icon='%s' >"
-							+ "<a href='%s' " + " data-transition='none' "
-							+ "><img src='%s'"
-							+ " alt='%s' class='ui-li-icon' />%s</a></li>\n",
-					file.isDirectory(),
-					file.isDirectory() ? -1 : file.length(), data_icon, href,
-					img_src, file.getName(), file.getName()));
+			if (isVolumeList) {
+				sb.append(String
+						.format("<li><a href=\"%s\" data-ajax=\"false\"><img src=\"/images/folder.png?webroot=true\"  class=\"ui-li-icon ui-corner-none\">%s</a></li>",
+								href, file.getName()));
+			} else {
+				sb.append(String
+						.format("<li onclick='FileitemClick(this)' isDirectory='%b'"
+								+ " fileSize='%d'"
+								+ " data-icon='%s' >"
+								+ "<a href='%s' "
+								+ " data-transition='none' "
+								+ "><img src='%s'"
+								+ " alt='%s' class='ui-li-icon' />%s</a></li>\n",
+								file.isDirectory(), file.isDirectory() ? -1
+										: file.length(), data_icon, href,
+								img_src, file.getName(), file.getName()));
+			}
 
 		}
 		return sb.toString();
