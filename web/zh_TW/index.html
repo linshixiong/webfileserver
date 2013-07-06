@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
     
     <head>
@@ -7,164 +7,49 @@
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <title>
+			 網路服務主頁
         </title>
 		
         <link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css?webroot=true"
-        />
-		<link rel="stylesheet" href="/css/my.css?webroot=true"
         />
         <script src="/js/jquery.js?webroot=true">
         </script>
 		
         <script src="/js/jquery.mobile-1.3.1.min.js?webroot=true">
         </script>
-         <script src="/js/my.js?webroot=true">
-        </script>
-		<script src="/js/strings_zh_tw.js?webroot=true"></script>
+
     </head>
     
     <body>
         <!-- Home -->
-        <div data-role="page" id="page1" data-theme="b">
-			 <script >
-				$(document).on("pageinit",pageInit);
-			 	$(document).on("pageshow", pageShow);
-			 </script>
-            <div data-role="header" data-position="fixed" data-theme="a" id="header">
-                <a href="../" data-transition="none"  data-theme="a" data-role="button" class="btn-back"  data-icon="back"> 
-                    返回
-                </a>
+        <div data-role="page" id="page1" data-theme="b"  >
+
+            <div data-role="header" data-position="fixed"  id="header">
+               
                 <h1>
-                    檔案列表
+                    網路服務主頁
                 </h1>
-				 <a href="javascript:showDeleteConfirm()" data-transition="none" id="delete_button"  data-role="button" class="btn-back" data-icon="delete"> 
-                    刪除
-                </a>
+
             </div>
             <div data-role="content" id="content">
-				<div  id="divider">
-                       <img src="/images/fangdajin.png?webroot=true"/><span>過濾選項...</span>
-                </div>
-                <ul id="filelist" data-role="listview" data-divider-theme="a" data-inset="true"class="ui-listview">
-				{file_list_data}
-                </ul>
-            </div>
-            <div data-role="footer" id="footer" class="nav-glyphish-example" data-position="fixed">
-                <div data-role="navbar" class="nav-glyphish-example" >
-                    <ul id="bottom_bar">
-                        <li >
-                            <a href="javascript:selectFile()"  data-icon="up" id="upload">
-                                 上載檔案
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:downloadFile()" data-icon="up" id="download">
-                               上載檔案
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:showMkdirDialog()"  data-icon="up" data-rel="popup" data-position-to="window" data-transition="pop"
-                            id="mkdir">
-                                新建資料夾
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:openFile()" data-icon="up" id="action" >
-                                打開檔案
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div data-role="popup" id="uploadDialog" data-dismissible="false" style="max-width:400px;"
-            class="ui-corner-all"  data-theme="b">
 
-                <form method="POST" action="." data-theme="b" >
-                    <div style="padding:10px 20px;" data-theme="b" >
-                        <h3>
-                                          <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete"
-                data-iconpos="notext" class="ui-btn-right">
-                    Close
-					</a> 上載檔案
-                        </h3>
-                        <input type="file" id="file">
-                        <div id="fileName">
-                        </div>
-                        <div id="fileSize">
-                        </div>
-                        <div id="uploadProgress" style="display:none">
-                            <img src="/images/loading.gif?webroot=true" style="vertical-align:middle;"
-                            />
-                            <span id="progressNumber" style="vertical-align:middle;">
-                                正在上載...
-                            </span>
-                        </div>
-                        <button type="button" data-theme="b" data-icon="check" onclick="uploadFile()">
-                            上載
-                        </button>
-                    </div>
-                </form>
-            </div>
-            <div data-role="popup" id="downloadDialog" data-theme="c" class="ui-corner-all">
-                <div data-role="header" data-theme="a" class="ui-corner-top">
-                    <h1>
-                        下載档案
-                    </h1>
-                </div>
-                <div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
-                    <div style="padding:10px 20px;">
-                        <h3 class="ui-title">
-                            是否確定下載選擇的檔案？
-                        </h3>
-                        <p id="downloadFileName">
-                        </p>
-                        <p id="downloadFileSize">
-                        </p>
-                        <a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">
-                            取消
-                        </a>
-                        <a href="#" id="download_file_url"  onclick="startDownloadFile()" download=""
-                        data-ajax="false" data-role="button" data-inline="true" data-theme="b">
-                            下載
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div data-role="popup" id="toast" data-theme="e">
-                <p id="toast_msg">
-                </p>
-            </div>
-            <div data-role="popup" id="mkdirDialog" data-theme="a" class="ui-corner-all" >
-   
-                <div style="padding:10px 20px;">
-                    <h3>
-						<a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete"
-							data-iconpos="notext" class="ui-btn-right" >close</a> 
-							新建資料夾
-                    </h3>
-                    <label for="dir_name" class="ui-hidden-accessible">
-                        資料夾名稱:
-                    </label>
-                    <input type="text" id="dir_name" placeholder="資料夾名稱:" data-theme="b">
-                    <button data-theme="b" data-icon="check" onclick="mkdir()">
-                        確定
-                    </button>
+				
+				<ul data-role="listview" data-inset="true" >
+					<li><a href="/zh_TW/remote.html?webroot=true" data-ajax="false"><img src="/images/remote_control.png?webroot=true" class="ui-li-icon ui-corner-none">機頂盒遙控器</a></li>
+					
+				</ul>
 
-                </div>
+				<ul data-role="listview" data-inset="true" >
+					<li data-role="list-divider">檔案管理</li>
+
+					{file_list_data}
+				</ul>
+               
             </div>
 
-			
-			<div data-role="popup" id="deleteFileDialog" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
-				<div data-role="header" data-theme="a" class="ui-corner-top">
-					<h1>刪除檔案？</h1>
-				</div>
-				<div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
-					<h3 class="ui-title">是否確定刪除選擇的檔案?</h3>
-					<p id="fileNameDelete"></p>
-					<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">取消</a>
-					<a href="javascript:deleteFile()" data-role="button" data-inline="true" data-transition="flow" data-theme="b">刪除</a>
-				</div>
-			</div>
+            
+
+
 			
         </div>
     </body>
