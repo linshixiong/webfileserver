@@ -35,6 +35,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 public class NanoHTTPD {
@@ -466,7 +467,9 @@ public class NanoHTTPD {
 						if ("key".equals(remoteAction)) {
 							String keycode=parms.getProperty("data","");
 							Log.w(TAG, "keycode="+keycode);
-							Utils.sendKeyEvent(keycode);
+							Utils.sendKeyEvent(keycode,mContext);
+							Response r = new Response(HTTP_OK, MIME_HTML, "OK");
+							sendResponse(r.status, r.mimeType, r.header, r.data);
 						}
 						
 						
@@ -477,12 +480,16 @@ public class NanoHTTPD {
 							ComponentName component=ComponentName.unflattenFromString(launch);
 							intent.setComponent(component);
 							Utils.startActivitySafely(mContext,intent);
+							Response r = new Response(HTTP_OK, MIME_HTML, "OK");
+							sendResponse(r.status, r.mimeType, r.header, r.data);
 						}
+						
+						
 						
 					}
 				}
 
-				Response r = serveFile(uri, method, header, homeDir, action);
+				Response r = serveFile(uri, method, header,parms, homeDir, action);
 				if (r == null) {
 					Log.d(TAG, "HTTP_INTERNALERROR");
 					sendError(HTTP_INTERNALERROR,
@@ -809,7 +816,7 @@ public class NanoHTTPD {
 	 * Serves file from homeDir and its' subdirectories (only). Uses only URI,
 	 * ignores all headers and HTTP parameters.
 	 */
-	public Response serveFile(String uri, String method, Properties header,
+	public Response serveFile(String uri, String method, Properties header,Properties parms,
 			File homeDir, String action) {
 		Response res = null;
 		Log.d(TAG, "serveFile");
@@ -897,8 +904,27 @@ public class NanoHTTPD {
 
 			}
 			File indexFileRoot=new File(wwwroot,language);
-			File indexFile = new File(indexFileRoot, isIEBrowser ? "index_ie.html"
-					: "index.html");
+			
+			File indexFile=null;
+			if(homeDir==null){
+				
+				String actionMain=parms.getProperty("action");
+				if(actionMain==null||actionMain.trim().equals("")){
+					indexFile= new File(indexFileRoot,  "index.html");
+				}else if(action.equals("file")) {
+					indexFile= new File(indexFileRoot, isIEBrowser ? "file_ie.html"
+							: "file.html");
+				}
+				else if(action.equals("remote")) {
+					indexFile= new File(indexFileRoot,  "remote.html");
+				}else {
+					indexFile= new File(indexFileRoot,  "index.html");
+				}
+			}else {
+				indexFile= new File(indexFileRoot, isIEBrowser ? "file_ie.html"
+						: "file.html");
+			}
+			
 
 			String msg = null;
 

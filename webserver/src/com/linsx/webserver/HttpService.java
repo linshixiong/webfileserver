@@ -32,7 +32,7 @@ public class HttpService extends Service {
 	private IntentFilter filter;
 	private ConnectivityManager connMgr;
 	private Builder builder;
-	public static final boolean DEBUG=false;
+	public static final boolean DEBUG=true;
 
 	
 	@Override
@@ -50,6 +50,7 @@ public class HttpService extends Service {
 		if (pm != null) {
 			wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NanoHTTPD");
 		}
+		Settings.init(this);
 		mNotificationManager = (NotificationManager) this
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		connMgr = (ConnectivityManager) this

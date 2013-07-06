@@ -28,6 +28,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import android.R.raw;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -38,6 +39,7 @@ import android.os.ServiceManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.InputDevice;
@@ -46,20 +48,22 @@ import android.view.KeyEvent;
 import android.os.RemoteException;
 import android.content.Intent;
 import android.widget.Toast;
+
 public class Utils {
 	private static final String QRCODE_API = "http://chart.apis.google.com/chart?cht=qr&chs=250x250&chl=%s";
 	private static final String TAG = "Utils";
 	private static Context sContext;
-	private static IWindowManager sWindowManager;
-	public static void setGlobalContext(Context context){
-		
-		sContext=context;
+
+	// private static IWindowManager sWindowManager;
+	public static void setGlobalContext(Context context) {
+
+		sContext = context;
 	}
-	
-	public static Context getGlobalContext(){
+
+	public static Context getGlobalContext() {
 		return sContext;
 	}
-	
+
 	public static String getLocalIpAddress() {
 		try {
 			String ipv4;
@@ -109,52 +113,52 @@ public class Utils {
 	}
 
 	// 生成QR图
-    public static Bitmap createQRImage(String text,int width,int height) {
-        try {
-            // 需要引入core包
-            QRCodeWriter writer = new QRCodeWriter();
- 
-            if (text == null || "".equals(text) || text.length() < 1) {
-                return null;
-            }
+	public static Bitmap createQRImage(String text, int width, int height) {
+		try {
+			// 需要引入core包
+			QRCodeWriter writer = new QRCodeWriter();
 
-            // 把输入的文本转为二维码
-            BitMatrix martix = writer.encode(text, BarcodeFormat.QR_CODE,
-            		width, height);
+			if (text == null || "".equals(text) || text.length() < 1) {
+				return null;
+			}
 
-            System.out.println("w:" + martix.getWidth() + "h:"
-                    + martix.getHeight());
+			// 把输入的文本转为二维码
+			BitMatrix martix = writer.encode(text, BarcodeFormat.QR_CODE,
+					width, height);
 
-            Hashtable<EncodeHintType, String> hints = new Hashtable<EncodeHintType, String>();
-            hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
-            BitMatrix bitMatrix = new QRCodeWriter().encode(text,
-                    BarcodeFormat.QR_CODE, width, height, hints);
-            int[] pixels = new int[width * height];
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    if (bitMatrix.get(x, y)) {
-                        pixels[y * width + x] = 0xff000000;
-                    } else {
-                        pixels[y * width + x] = 0xffffffff;
-                    }
+			System.out.println("w:" + martix.getWidth() + "h:"
+					+ martix.getHeight());
 
-                }
-            }
+			Hashtable<EncodeHintType, String> hints = new Hashtable<EncodeHintType, String>();
+			hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
+			BitMatrix bitMatrix = new QRCodeWriter().encode(text,
+					BarcodeFormat.QR_CODE, width, height, hints);
+			int[] pixels = new int[width * height];
+			for (int y = 0; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					if (bitMatrix.get(x, y)) {
+						pixels[y * width + x] = 0xff000000;
+					} else {
+						pixels[y * width + x] = 0xffffffff;
+					}
 
-            Bitmap bitmap = Bitmap.createBitmap(width, height,
-                    Bitmap.Config.ARGB_8888);
+				}
+			}
 
-            bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
-            return bitmap;
-        } catch (WriterException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-	
+			Bitmap bitmap = Bitmap.createBitmap(width, height,
+					Bitmap.Config.ARGB_8888);
+
+			bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
+			return bitmap;
+		} catch (WriterException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	public static Bitmap Create2DCode(String str) {
 		// httpGet连接对象
-		HttpGet httpRequest = new HttpGet(String.format(QRCODE_API,str));
+		HttpGet httpRequest = new HttpGet(String.format(QRCODE_API, str));
 		// 取得HttpClient 对象
 		HttpClient httpclient = new DefaultHttpClient();
 		Bitmap bitmap = null;
@@ -208,17 +212,25 @@ public class Utils {
 			targetFile.delete();
 		}
 	}
-	
-	
-	
-    /**
-     * Send a single key event.
-     *
-     * @param event is a string representing the keycode of the key event you
-     * want to execute.
-     */
-    public static void sendKeyEvent(String event) {
-        int eventCode = Integer.parseInt(event);
+
+	/**
+	 * Send a single key event.
+	 * 
+	 * @param event
+	 *            is a string representing the keycode of the key event you want
+	 *            to execute.
+	 */
+	public static void sendKeyEvent(String event, Context context) {
+		int eventCode = Integer.parseInt(event);
+		if (eventCode == KeyEvent.KEYCODE_POWER) {
+			powerOff(context);
+
+			return;
+		}
+		if (eventCode == -KeyEvent.KEYCODE_HOME) {
+			showAllAppList(context);
+			return;
+		}
         long now = SystemClock.uptimeMillis();
         Log.i("SendKeyEvent", event);
         try {
@@ -233,34 +245,65 @@ public class Utils {
         } catch (RemoteException e) {
             Log.i("Input", "DeadOjbectException");
         }
-    }
+	}
+	public static void showAllAppList(Context context) {
+		Intent intent = new Intent(Intent.ACTION_MAIN);
+		intent.addCategory(Intent.CATEGORY_HOME);
+		intent.addCategory("com.softwinner.category.app");
+		intent.setClassName("com.softwinner.launcher",
+				"com.softwinner.launcher.Launcher");
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		try {
+			context.startActivity(intent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
 
-	public static boolean startActivitySafely(Context context,Intent intent) {
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            context.startActivity(intent);
-            return true;
-        } catch (ActivityNotFoundException e) {
-            //Toast.makeText(context, R.string.unable_to_launch, Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "Unable to launch intent=" + intent, e);
-        } catch (SecurityException e) {
-            //Toast.makeText(context, R.string.unable_to_launch, Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "Launcher does not have the permission to launch " + intent +
-                    ". Make sure to create a MAIN intent-filter for the corresponding activity " +
-                    "or use the exported attribute for this activity.intent=" + intent, e);
-        }
-        return false;
-    }
-	
+	public static void powerOff(Context context) {
+		Intent intent = new Intent(Intent.ACTION_REQUEST_SHUTDOWN);// 之所以能够在源码中查看，但是调用的时候不显示，是因为这个不对上层开放
+
+		intent.putExtra(Intent.EXTRA_KEY_CONFIRM, false);
+
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+		context.startActivity(intent);
+
+	}
+
+	public static boolean startActivitySafely(Context context, Intent intent) {
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		try {
+			context.startActivity(intent);
+			return true;
+		} catch (ActivityNotFoundException e) {
+			// Toast.makeText(context, R.string.unable_to_launch,
+			// Toast.LENGTH_SHORT).show();
+			Log.e(TAG, "Unable to launch intent=" + intent, e);
+		} catch (SecurityException e) {
+			// Toast.makeText(context, R.string.unable_to_launch,
+			// Toast.LENGTH_SHORT).show();
+			Log.e(TAG,
+					"Launcher does not have the permission to launch "
+							+ intent
+							+ ". Make sure to create a MAIN intent-filter for the corresponding activity "
+							+ "or use the exported attribute for this activity.intent="
+							+ intent, e);
+		}
+		return false;
+	}
+
 	public static File getHomeDir(String uri) {
 
-		if(sContext==null){
+		if (sContext == null) {
 			return null;
 		}
 		if (uri.equals("/") || uri.equals("")) {
 			return null;
 		}
-		List<String> deviceList=DeviceManager.getInstance(sContext).getMountedDevicesList();
+		List<String> deviceList = DeviceManager.getInstance(sContext)
+				.getMountedDevicesList();
 		if (deviceList != null) {
 			for (String volume : deviceList) {
 				File file = new File(volume);
@@ -272,13 +315,14 @@ public class Utils {
 
 		return null;
 	}
-	
+
 	public static List<File> getDeviceVolumes() {
-		if(sContext==null){
+		if (sContext == null) {
 			return null;
 		}
 		ArrayList<File> files = new ArrayList<File>();
-		List<String> deviceList=DeviceManager.getInstance(sContext).getMountedDevicesList();
+		List<String> deviceList = DeviceManager.getInstance(sContext)
+				.getMountedDevicesList();
 		if (deviceList != null) {
 
 			for (String s : deviceList) {
@@ -288,7 +332,7 @@ public class Utils {
 
 		return files;
 	}
-	
+
 	public static String getExtensionName(String filename) {
 		if ((filename != null) && (filename.length() > 0)) {
 			int dot = filename.lastIndexOf('.');
@@ -298,7 +342,7 @@ public class Utils {
 		}
 		return filename;
 	}
-	
+
 	public static String getGalleryListString(List<File> files) {
 		StringBuilder sb = new StringBuilder();
 
@@ -312,7 +356,6 @@ public class Utils {
 		return sb.toString();
 	}
 
-	
 	public static String getFileListString(List<File> files, String uri) {
 		StringBuilder sb = new StringBuilder();
 
@@ -323,7 +366,7 @@ public class Utils {
 			if (uri.equals("/")) {
 				uri = "";
 			}
-			
+
 			String href = file.isDirectory() ? uri + "/"
 					+ files.get(i).getName() + "/" : "#";
 			href = href.replace("//", "/");
@@ -336,7 +379,8 @@ public class Utils {
 
 				String extensionName = Utils.getExtensionName(file.getName());
 
-				String mime = Mime.theMimeTypes.get(extensionName.toLowerCase());
+				String mime = Mime.theMimeTypes
+						.get(extensionName.toLowerCase());
 				Log.d(TAG, "getMimeTypeFromExtension " + mime + " form "
 						+ extensionName);
 				if (mime != null) {
@@ -366,6 +410,5 @@ public class Utils {
 		}
 		return sb.toString();
 	}
-
 
 }
