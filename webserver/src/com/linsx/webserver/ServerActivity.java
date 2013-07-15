@@ -58,7 +58,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 
 		Settings.init(this);
-
+		Utils.setGlobalContext(this);
 		if (!WebFileInstaller.isWebfileInstalled(this)) {
 			showInstallProgress();
 			installWebFiles();
@@ -246,7 +246,7 @@ public class ServerActivity extends Activity implements OnClickListener,
 			@Override
 			public void run() {
 				
-				mQRbitmap=Utils.Create2DCode(url);
+				mQRbitmap=Utils.createQRImage(url,250,250);
 				
 				if(mQRbitmap!=null){
 					Message msg=new Message();

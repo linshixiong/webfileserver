@@ -111,6 +111,10 @@
  #header{
  background-image: url(/images/top_bar_bg.png?webroot=true);
  background-color:transparent;
+ position:fixed;
+ }
+ #footer{
+  position:fixed;
  }
  
  #mkdirDialog{

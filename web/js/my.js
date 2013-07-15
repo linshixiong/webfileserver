@@ -18,7 +18,7 @@
 	}
 	
 	function pageInit (event){
-		console.log("pageInit");
+		//console.log("pageInit");
 
 		
 		$( "#downloadDialog" ).on( "popupafterclose", function( event, ui ) {	
@@ -43,7 +43,7 @@
 		var uri= window.location.pathname;
 		if(uri==""||uri=="/")
 		{
-			showToast("无法在当前路径新建资料夹");
+			showToast(string_canot_mkdir);
 			return;
 		}
 		var dialog=$("#mkdirDialog");
@@ -55,7 +55,7 @@
 	function showDeleteConfirm(){
 		var selected=getSelectedFile();
 		fileSelectToDelete=$(selected).find("img").attr("alt");
-		$("#fileNameDelete").html("档案名称："+fileSelectToDelete);
+		$("#fileNameDelete").html(string_file_name+fileSelectToDelete);
 		var dialog=$("#deleteFileDialog");
 		dialog.popup( "option", "transition", "pop" );
 		dialog.popup( "open" );
@@ -65,10 +65,12 @@
 	function deleteFile(){
 		var fileName=fileSelectToDelete;
 		var xhr = new XMLHttpRequest();
+ 
 		xhr.addEventListener("load", deleteComplete, false);
 		xhr.addEventListener("error", deleteComplete, false);
 		xhr.open("POST", ".");
-		console.log("delete :"+fileName);
+		xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded"); 
+		//console.log("delete :"+fileName);
 		xhr.send("delete="+fileName);
 		var dialog=$("#deleteFileDialog");
 		dialog.popup( "close");
@@ -81,7 +83,7 @@
 	
 	function FileitemClick(obj){
 			
-			console.log("filelistClick");
+			//console.log("filelistClick");
 	
 			 var length= $("#filelist > li").length;
 			 for(var i=0;i<length;i++)
@@ -119,7 +121,7 @@
 				continue;
 			}
 			var data_icon= $(o).attr("data-icon");
-			console.log("downloadFile data_icon="+data_icon);
+			//console.log("downloadFile data_icon="+data_icon);
 			if(data_icon=="file-checked"){
 				selected=o;
 				break;
@@ -132,18 +134,18 @@
 	{		
 		var selected=getSelectedFile();
 		if(selected==undefined){
-			console.log("请选择需要下载的文件.");
-			showToast("请选择需要下载的文件.");
+			showToast(string_select_file_to_download);
 		}
 		else{
-			console.log("设置下载链接...");
+			
 			var fileName=$(selected).find("img").attr("alt");
 			var fileSize=$(selected).attr("fileSize");
 			downloadFileName=fileName;
-			$("#downloadFileName").html("文件名："+fileName);
-			$("#downloadFileSize").html("文件大小："+getFileSize(fileSize));
+			$("#downloadFileName").html(string_file_name+fileName);
+			$("#downloadFileSize").html(string_file_size+getFileSize(fileSize));
 			$("#download_file_url").attr("href",fileName);
 			$("#download_file_url").attr("download",fileName);
+			
 			$( "#downloadDialog" ).popup( "option", "transition", "pop" );
 			$( "#downloadDialog" ).popup( "open", "" );
 
@@ -164,7 +166,9 @@
 	
 	function getFileSize(length)
     {
-    	
+    	if(length<0){
+			return "unknown";
+		}
     	if(length<1024){
     		return length+ "B";
     	}
@@ -194,10 +198,9 @@
 	function selectFile()
 	{
 		var uri= window.location.pathname;
-		console.log("select file upload to "+uri);
 		if(uri==""||uri=="/")
 		{
-			showToast("无法在当前路径上传档案");
+			showToast(string_canot_upload);
 			return;
 		}
 		
@@ -209,12 +212,11 @@
 
 				$("#uploadDialog").popup("open");
 			}
-			document.getElementById('fileName').innerHTML = '名称: ' + file.name;
-			document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
+			document.getElementById('fileName').innerHTML = string_file_name + file.name;
+			document.getElementById('fileSize').innerHTML = string_file_size + fileSize;
 
         });
 		$( "#uploadDialog" ).on( "popupafterclose", function( event, ui ) {	
-			console.log("uploadDialog close");
 			if(xhr!=undefined){
 				xhr.abort();
 			}
@@ -236,7 +238,7 @@
 		xhr.addEventListener("load", mkdirComplete, false);
 		xhr.addEventListener("error", mkdirComplete, false);
 		xhr.open("POST", ".");
-		console.log("mkdir :"+dirName);
+		xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");  
 		xhr.send("mkdir="+dirName);
 		$("#mkdirDialog").popup("close");
 	}	
@@ -259,7 +261,6 @@
         xhr.send(fd);
       }
 	  function uploadStart(evt){
-		  console.log("uploadStart");
 		   var target=document.getElementById("uploadProgress"); 
            target.style.display="block";
             
@@ -268,10 +269,10 @@
       function uploadProgress(evt) {
         if (evt.lengthComputable) {
           var percentComplete = Math.round(evt.loaded * 100 / evt.total);
-          document.getElementById('progressNumber').innerHTML = "正在上传，完成"+ percentComplete.toString() + '%';
+          document.getElementById('progressNumber').innerHTML = string_uploading_with_progress+ percentComplete.toString() + '%';
         }
         else {
-          document.getElementById('progressNumber').innerHTML = '正在上传...';
+          document.getElementById('progressNumber').innerHTML = string_uploading;
         }
       }
       function uploadComplete(evt) {
@@ -284,45 +285,38 @@
 	  }
       function uploadCanceled(evt) {
         $("#uploadDialog").popup("close");
-		//alert(evt.target.responseText);
       }
 
 	
 	function openFile(){
 		var selected=getSelectedFile();
 		if(selected==undefined){
-			showToast("请选择需要打开的文件.");
+			showToast(string_select_file_to_open);
 		}
 		
 		else{
 			var fileName=$(selected).find("img").attr("alt");
 			if(fileName.lastIndexOf(".")>0){
 				var extName=fileName.substring(fileName.lastIndexOf(".")+1,fileName.length).toLowerCase();
-				console.log("file extension name is "+extName);
-				
-				//打开图片预览
+
 				if(extName=="jpg"||extName=="jpeg"||extName=="bmp"||extName=="png"||extName=="gif"){
-				
-					console.log("view image file "+fileName);
 					window.open (fileName+'?action=play') ;
 				}
-				else if(extName=="mp3"||extName=="ogg"||extName=="wav"){
-					console.log("play audio "+fileName);
-					
+					else if(extName=="mp3"||extName=="ogg"||extName=="wav"){				
 					window.open (fileName+'?action=play') ;
-
 				}else if (extName=="mp4"){
-					console.log("play video "+fileName);
 					window.open (fileName+'?action=play') ;
-					
-				}else
+				}else if(extName=="txt"||extName=="pdf"){
+					window.open (fileName+'?action=play') ;
+				}
+				else
 				{
-					showToast("此文件类型无法直接打开，请下载此文件!");
+					showToast(string_cannot_open_file);
 					return;
 				}
 				
 			}else{
-				showToast("此文件类型无法直接打开，请下载此文件!");		
+				showToast(string_cannot_open_file);		
 				return;
 			}
 

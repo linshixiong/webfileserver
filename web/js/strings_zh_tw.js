@@ -1,0 +1,10 @@
+﻿var string_file_name="檔案名稱: ";
+var string_file_size="檔案大小: ";
+var string_canot_mkdir="無法在此處建立資料夾！";
+var string_canot_upload="無法在此處上載檔案!";
+var string_select_file_to_download="請選擇需要下載的檔案.";
+var string_select_file_to_upload="請選擇需要上載的檔案.";
+var string_select_file_to_open="請選擇需要打開的檔案.";
+var string_uploading_with_progress="上載中,完成 ";
+var string_uploading="上載中...";
+var string_cannot_open_file="無法直接打開此檔案，請下載後打開。";

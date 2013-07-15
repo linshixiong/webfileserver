@@ -8,6 +8,12 @@
             android:numeric="integer"
             android:summary="@string/server_port_summary"
             android:title="@string/server_port" />
+        <CheckBoxPreference 
+            android:key="key_auto_start"
+            android:title="@string/auto_start"
+            android:summaryOn="@string/auto_start_on"
+            android:summaryOff="@string/auto_start_off"> 
+        </CheckBoxPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/about" >
         <Preference

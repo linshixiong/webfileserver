@@ -1,0 +1,10 @@
+﻿var string_file_name="ファイル名: ";
+var string_file_size="ファイルサイズ: ";
+var string_canot_mkdir="ここでできなかったのは、創立フォルダだった";
+var string_canot_upload="ここで掲載できない文書に署名した";
+var string_select_file_to_download="必要ダウンロードしたファイルを选んでください";
+var string_select_file_to_upload="必要に掲載された文書を选んでください";
+var string_select_file_to_open="必要に開けられた文書を选んでください";
+var string_uploading_with_progress="でクロスで完成 ";
+var string_uploading="上からのクロス...";
+var string_cannot_open_file="これに開けないファイルをダウンロードしてドアが開いた";

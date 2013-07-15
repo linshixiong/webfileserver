@@ -2,6 +2,7 @@ package com.linsx.webserver;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
@@ -13,9 +14,10 @@ public class SettingsActivity extends PreferenceActivity implements
 
 	private final String KEY_SERVER_PORT = "edittext_server_port";
 	private final String KEY_VERSION = "prdference_version";
+	private final String KEY_AUTO_START="key_auto_start";
 	private EditTextPreference preferencePort;
 	private Preference preferenceVersion;
-
+	private CheckBoxPreference preferenceAutoStart;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -23,9 +25,9 @@ public class SettingsActivity extends PreferenceActivity implements
 		addPreferencesFromResource(R.xml.settings_prefs);
 		preferencePort = (EditTextPreference) findPreference(KEY_SERVER_PORT);
 		preferenceVersion = (Preference) findPreference(KEY_VERSION);
+		preferenceAutoStart=(CheckBoxPreference)findPreference(KEY_AUTO_START);
 		if (preferencePort != null) {
 			preferencePort.setOnPreferenceChangeListener(this);
-			updatePreferences();
 		}
 
 		if (preferenceVersion != null) {
@@ -36,7 +38,10 @@ public class SettingsActivity extends PreferenceActivity implements
 
 			}
 		}
-
+		if(preferenceAutoStart!=null){
+			preferenceAutoStart.setOnPreferenceChangeListener(this);	
+		}
+		updatePreferences();
 	}
 
 	private void updatePreferences() {
@@ -45,11 +50,15 @@ public class SettingsActivity extends PreferenceActivity implements
 			preferencePort.setSummary(getResources().getString(
 					R.string.server_port_summary, Settings.getPort()));
 		}
+		if(preferenceAutoStart!=null){
+			preferenceAutoStart.setChecked(Settings.isServerAutoStart());
+		}
+		
 	}
 
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
-		if (preference.getKey().equals(KEY_SERVER_PORT)) {
+		if (KEY_SERVER_PORT.equals(preference.getKey())) {
 			int port = Integer.parseInt(newValue.toString());
 			if (port < 1024 || port > 65535) {
 				Toast.makeText(this, R.string.server_port_invalid,
@@ -62,6 +71,11 @@ public class SettingsActivity extends PreferenceActivity implements
 				
 			}
 
+		}
+		if(KEY_AUTO_START.equals(preference.getKey())){
+			boolean checked=Boolean.parseBoolean(newValue.toString());
+			Settings.setServerAutoStart(checked);
+			updatePreferences();
 		}
 		return false;
 	}

@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>图库</title>
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<link href="/css/styles.css?webroot=true" type="text/css" rel="stylesheet" />
+	
+	<link href="/css/photoswipe.css?webroot=true" type="text/css" rel="stylesheet" />
+	
+	<script type="text/javascript" src="/js/klass.min.js?webroot=true"></script>
+	<script type="text/javascript" src="/js/code.photoswipe-3.0.5.min.js?webroot=true"></script>
+	<script src="/js/jquery.js?webroot=true"></script>
+		
+	<script type="text/javascript">
+		(function(window, Util, PhotoSwipe){
+			
+			Util.Events.domReady(function(e){
+				
+				var instance;
+				
+				instance = PhotoSwipe.attach(
+					[
+						{gallery_items}
+					],
+					{
+						captionAndToolbarHide:true,
+						preventHide: true,
+						getImageSource: function(obj){
+							return obj.url;
+						},
+						getImageCaption: function(obj){
+							return obj.caption;
+						}
+					}
+				);
+				instance.show(4);
+				
+			});
+						
+		}(window, window.Code.Util, window.Code.PhotoSwipe));
+	</script>
+</head>
+<body>
+<div id="MainContent">
+	<div id="PhotoSwipeTarget"></div>
+</div>
+</body>
+</html>

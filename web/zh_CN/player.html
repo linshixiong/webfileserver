@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <title>
+        </title>
+		
+        <link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css?webroot=true"
+        />
+		<link rel="stylesheet" href="/css/my.css?webroot=true"
+        />
+        <script src="/js/jquery.js?webroot=true">
+        </script>
+		
+        <script src="/js/jquery.mobile-1.3.1.min.js?webroot=true">
+        </script>
+
+    </head>
+    
+    <body>
+        <!-- Home -->
+        <div data-role="page" id="page1" data-theme="b">
+
+            <div data-role="header" data-position="fixed" data-theme="a" id="header">
+                <a href="javascript:window.close()" data-transition="none" id="back_button" data-theme="a" data-role="button" class="btn-back"> 
+                    
+                </a>
+                <h1>
+                    打开媒体文件
+                </h1>
+            </div>
+            <div data-role="content" id="content">
+				<div  id="divider">
+                       <img src="/images/fangdajin.png?webroot=true"/><span>正在播放...</span>
+                </div>
+				 <div id="player"  data-inset="true">
+					{player_item}				
+                </div>
+            </div>        
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <title>
+        </title>
+		
+        <link rel="stylesheet" href="/css/jquery.mobile-1.3.1.min.css?webroot=true"
+        />
+		<link rel="stylesheet" href="/css/my.css?webroot=true"
+        />
+		
+        <script src="/js/jquery.js?webroot=true">
+        </script>
+        <script src="/js/jquery.mobile-1.3.1.min.js?webroot=true">
+        </script>
+         <script src="/js/my.ie.js?webroot=true">
+        </script>
+		<script type="text/javascript" src="/js/swfupload.js?webroot=true"></script>
+		<script type="text/javascript" src="/js/swfupload.queue.js?webroot=true"></script>
+		<script type="text/javascript" src="/js/handlers.js?webroot=true"></script>
+		<script src="/js/strings_ja.js?webroot=true"></script>
+		<script type="text/javascript">
+		var swfu;
+
+		window.onload = function() {
+			var settings = {
+				flash_url : "/images/swfupload.swf?webroot=true",
+				flash9_url : "/images/swfupload_fp9.swf?webroot=true",
+				upload_url: ".",
+				file_size_limit : "0",
+				file_types : "*.*",
+				file_types_description : "すべての書類を",
+				file_upload_limit : 0,
+				file_queue_limit : 0,
+
+				debug: true,
+
+				// Button settings
+				button_image_url: "/images/TestImageNoText_65x29.png?webroot=true",
+				button_width: "180",
+				button_height: "29",
+				button_placeholder_id: "file",
+				button_text: '<span class="theFont">選択ファイル</span>',
+				button_text_style: ".theFont { font-size: 16; }",
+				button_text_left_padding: 12,
+				button_text_top_padding: 3,
+				button_cursor : SWFUpload.CURSOR.HAND,
+				
+				// The event handler functions are defined in handlers.js
+				swfupload_preload_handler : preLoad,
+				swfupload_load_failed_handler : loadFailed,
+				file_queued_handler : fileQueued,
+				file_queue_error_handler : fileQueueError,
+				file_dialog_complete_handler : fileDialogComplete,
+				upload_start_handler : uploadStart,
+				upload_progress_handler : uploadProgress,
+				upload_error_handler : uploadError,
+				upload_success_handler : uploadSuccess,
+				upload_complete_handler : uploadComplete,
+				queue_complete_handler : queueComplete	// Queue plugin event
+			};
+
+			swfu = new SWFUpload(settings);
+				
+			$( "a" ).each(function() {
+					$( this ).attr("data-ajax",false );
+			});
+		
+	     };
+		 var file_id;
+		 function upload(){
+			//alert(file_id);
+			swfu.startUpload(file_id);
+		 }
+		 
+		 function cancelUpload(){
+			swfu.cancelUpload(file_id);
+		 }
+	</script>
+    </head>
+    
+    <body>
+        <!-- Home -->
+
+        <div data-role="page" id="page1" data-theme="b">
+		
+			 <script >
+				//$(document).on("pageinit",pageInit);
+			 	$(document).on("pageshow", pageShow);
+			 </script>
+            <div data-role="header" data-position="fixed" data-theme="a" id="header">
+                <a href="../" data-transition="none"  data-theme="a" data-role="button" class="btn-back"  data-icon="back"> 
+                    オート
+                </a>
+                <h1>
+                    ファイルリスト
+                </h1>
+				 <a href="javascript:showDeleteConfirm()" data-transition="none" id="delete_button"  data-role="button" class="btn-back" data-icon="delete"> 
+                    削る
+                </a>
+            </div>
+            <div data-role="content" id="content">
+				<div  id="divider">
+                       <img src="/images/fangdajin.png?webroot=true"/><span>こすオプション...</span>
+                </div>
+                <ul id="filelist" data-role="listview" data-divider-theme="a" data-inset="true"class="ui-listview">
+				{file_list_data}
+                </ul>
+            </div>
+            <div data-role="footer" id="footer" class="nav-glyphish-example" data-position="fixed">
+                <div data-role="navbar" class="nav-glyphish-example" >
+                    <ul id="bottom_bar">
+                        <li >
+                            <a href="javascript:selectFile()"  data-icon="up" id="upload">
+                                 アップロード
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:downloadFile()" data-icon="up" id="download">
+                               ダウンロード
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:showMkdirDialog()"  data-icon="up" data-rel="popup" data-position-to="window" data-transition="pop"
+                            id="mkdir">
+                                新築フォルダ
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:openFile()" data-icon="up" id="action" >
+                                ファイルを开けて
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div data-role="popup" id="uploadDialog" data-dismissible="false" style="max-width:400px;"
+            class="ui-corner-all"  data-theme="b">
+
+                <form id="formUploadFile" method="POST" action="." data-theme="b" enctype="multipart/form-data">
+                    <div style="padding:10px 20px;" data-theme="b" >
+                        <h3>
+                            <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete" data-iconpos="notext" class="ui-btn-right">
+							Close
+					</a> 掲示板に書き込みを掲載した文書
+                        </h3>
+                        <input type="file" id="file">
+                        <div id="fileName">
+                        </div>
+                        <div id="fileSize">
+                        </div>
+                        <div id="uploadProgress" style="display:none">
+                            <img src="/images/loading.gif?webroot=true" style="vertical-align:middle;"
+                            />
+                            <span id="progressNumber" style="vertical-align:middle;">
+                                アップロードしている...
+                            </span>
+                        </div>
+                        <button type="button" data-theme="b" data-icon="check" onclick="uploadFile()">
+                            アップロード
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+            <div data-role="popup" id="downloadDialog" data-theme="c" class="ui-corner-all">
+                <div data-role="header" data-theme="a" class="ui-corner-top">
+                    <h1>
+                        ダウンロードをする
+                    </h1>
+                </div>
+                <div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
+                    <div style="padding:10px 20px;">
+                        <h3 class="ui-title">
+                            かどうかを確定で伝が選択したファイルです？
+                        </h3>
+                        <p id="downloadFileName">
+                        </p>
+                        <p id="downloadFileSize">
+                        </p>
+                        <a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">
+                           取り消す
+                        </a>
+                        <a href="#" id="download_file_url"  onclick="startDownloadFile()" download=""
+                        data-ajax="false" data-role="button" data-inline="true" data-theme="b">
+                           ダウンロード
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div data-role="popup" id="toast" data-theme="e">
+                <p id="toast_msg">
+                </p>
+            </div>
+            <div data-role="popup" id="mkdirDialog" data-theme="a" class="ui-corner-all" >
+   
+                <div style="padding:10px 20px;">
+                    <h3>
+						<a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete"
+							data-iconpos="notext" class="ui-btn-right" >close</a> 
+							新築フォルダ
+                    </h3>
+                    <label for="dir_name" class="ui-hidden-accessible">
+                        フォルダ名:
+                    </label>
+                    <input type="text" id="dir_name" placeholder="フォルダ名:" data-theme="b">
+                    <button data-theme="b" data-icon="check" onclick="mkdir()">
+                        確定する
+                    </button>
+
+                </div>
+            </div>
+
+			
+			<div data-role="popup" id="deleteFileDialog" data-overlay-theme="a" data-theme="c" data-dismissible="false" style="max-width:400px;" class="ui-corner-all">
+				<div data-role="header" data-theme="a" class="ui-corner-top">
+					<h1>クリスマスの</h1>
+				</div>
+				<div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
+					<h3 class="ui-title">削除するかどうかを確定が選択した文書に署名した?</h3>
+					<p id="fileNameDelete"></p>
+					<a href="#" data-role="button" data-inline="true" data-rel="back" data-theme="c">取り消す</a>
+					<a href="javascript:deleteFile()" data-role="button" data-inline="true" data-transition="flow" data-theme="b">削る</a>
+				</div>
+			</div>
+			
+        </div>
+    </body>
+
+</html>

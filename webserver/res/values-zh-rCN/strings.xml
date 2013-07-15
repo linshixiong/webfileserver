@@ -20,6 +20,11 @@
 	<string name="server_port_dialog_title">输入新的服务器端口</string>
 	<string name="server_port_invalid">端口号必须介于1024和65535之间</string>
 	<string name="server_port_occupied">端口%d被其他程序占用, 请在\"设置\"菜单中设置新的端口.</string>
+	<string name="browser_no_html5_support">你的浏览器不支持%s播放</string>
 	<string name="about">关于</string>
 	<string name="version">版本号</string>
+	<string name="auto_start">自动启动</string>
+	<string name="auto_start_on">服务器将在系统启动后自动启动</string>
+	<string name="auto_start_off">服务器自动启动已被禁用</string>
+	<string name="unable_to_launch">无法加载应用</string>
 </resources>

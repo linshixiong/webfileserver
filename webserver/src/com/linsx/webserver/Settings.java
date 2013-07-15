@@ -31,4 +31,12 @@ public class Settings {
 	public static void setPort(int port){
 		prefs.edit().putInt("server_port", port).commit();
 	}
+	
+	public static boolean isServerAutoStart(){
+		return prefs.getBoolean("auto_start", true);
+	}
+	
+	public static void setServerAutoStart(boolean autoStart){
+		prefs.edit().putBoolean("auto_start", autoStart).commit();
+	}
 }

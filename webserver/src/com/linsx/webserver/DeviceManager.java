@@ -9,7 +9,6 @@ package com.linsx.webserver;
 import java.io.File;
 import java.util.ArrayList;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Environment;
 import android.os.storage.StorageManager;
@@ -31,8 +30,15 @@ public class DeviceManager{
 	private StorageListHelper mStorageListHelper;
 	private StorageManager manager;
 
-	@SuppressLint("InlinedApi")
-	public DeviceManager(Context mContext)
+	private static DeviceManager instance;
+	public static DeviceManager getInstance(Context context){
+		if(instance==null){
+			instance=new DeviceManager(context);
+		}
+		return instance;
+	}
+	
+	private DeviceManager(Context mContext)
 	{
 		this.mContext = mContext;
 		/* 获取总设备列表 */
@@ -40,6 +46,7 @@ public class DeviceManager{
 		String[] volumeList;
 		manager = (StorageManager)mContext.getSystemService(Context.STORAGE_SERVICE);
 		mStorageListHelper=new StorageListHelper(mContext);
+		//volumeList = manager.getVolumePaths();
 		volumeList = mStorageListHelper.getVolumePaths();
 		for(int i = 0; i < volumeList.length; i ++)
 		{
@@ -108,6 +115,7 @@ public class DeviceManager{
 		{
 	        for(int i = 0; i < totalDevicesList.size(); i++)
 	        {
+	           // state = manager.getVolumeState(totalDevicesList.get(i));
 	            state = mStorageListHelper.getVolumeState(totalDevicesList.get(i));
 	           	if(state.equals(Environment.MEDIA_MOUNTED))
 	           	{

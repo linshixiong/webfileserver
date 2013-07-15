@@ -18,13 +18,17 @@ import android.util.Log;
 public class WebFileInstaller {
 	private static final String TAG = "WebFileInstaller";
 
-	public static boolean isWebfileInstalled(Context context) {
-
+	public static boolean isWebfileExist(Context context){
 		File fileDir = context.getFilesDir();
 		File webFile = new File(fileDir, "web/index.html");
 		Log.d(TAG, "check web file dir " + webFile.getAbsolutePath()
 				+ ",exist=" + webFile.exists());
-		if(! webFile.exists())
+		return webFile.exists();
+	}
+	
+	public static boolean isWebfileInstalled(Context context) {
+
+		if(!isWebfileExist(context))
 		{
 			return false;
 		}	

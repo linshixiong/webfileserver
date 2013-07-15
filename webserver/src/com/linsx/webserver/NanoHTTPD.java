@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
@@ -23,7 +24,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -31,11 +31,12 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
+import android.R.bool;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 public class NanoHTTPD {
@@ -45,34 +46,7 @@ public class NanoHTTPD {
 	private File wwwroot;
 	private static final String TAG = "NanoHTTPD";
 	private Context mContext;
-	private DeviceManager dm;
-	private List<String> mDeviceList;
 
-	private void mkdir(String uri, File homeDir, String dir) {
-		Log.d(TAG, "mkdir uri=" + uri + ",dir=" + dir + ",home=" + homeDir);
-		if (dir == null || dir.trim().equals("")) {
-			return;
-		}
-		File root = new File(homeDir, uri);
-		if (root.exists() && root.canWrite()) {
-			File newDir = new File(root, dir);
-			newDir.mkdirs();
-		}
-	}
-	
-	
-	private void deleteFile(String uri, File homeDir, String file){
-		
-		Log.d(TAG, "delete uri=" + uri + ",file=" + file + ",home=" + homeDir);
-		if (file == null || file.trim().equals("")) {
-			return;
-		}
-		File root = new File(homeDir, uri);
-		if (root.exists() && root.canWrite()) {
-			File targetFile = new File(root, file);
-			targetFile.delete();
-		}
-	}
 
 	/**
 	 * HTTP response. Return one of these from serve().
@@ -161,7 +135,6 @@ public class NanoHTTPD {
 		myTcpPort = port;
 		this.wwwroot = wwwroot;
 		this.mContext = context;
-		dm = new DeviceManager(mContext);
 		start();
 	}
 
@@ -297,8 +270,8 @@ public class NanoHTTPD {
 					return;
 				}
 				String uri = pre.getProperty("uri");
-				// Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
-
+				Log.d(TAG, "pre.getProperty(\"uri\")=" + uri);
+							 
 				long size = 0x7FFFFFFFFFFFFFFFl;
 				String contentLength = header.getProperty("content-length");
 
@@ -322,8 +295,7 @@ public class NanoHTTPD {
 					size = 0;
 				}
 
-				// Now read all the body and write it to f
-				buf = new byte[bufsize];
+				//buf = new byte[bufsize];
 
 				File homeDir = null;
 				boolean webRoot = Boolean.parseBoolean(parms
@@ -334,9 +306,7 @@ public class NanoHTTPD {
 				if (webRoot) {
 					homeDir = wwwroot;
 				} else {
-					mDeviceList = dm.getMountedDevicesList();
-					homeDir = getHomeDir(uri);
-
+					homeDir = Utils.getHomeDir(uri);
 				}
 
 				if (method.equalsIgnoreCase("POST")) {
@@ -344,18 +314,23 @@ public class NanoHTTPD {
 					String contentType = "";
 					String contentTypeHeader = header
 							.getProperty("content-type");
-					StringTokenizer st = new StringTokenizer(contentTypeHeader,
-							"; ");
-					if (st.hasMoreTokens()) {
-						contentType = st.nextToken();
+					Log.d(TAG, "contentTypeHeader=" + contentTypeHeader);
+					if (contentTypeHeader == null) {
+						contentType = "multipart/form-data";
+					} else {
+						StringTokenizer st = new StringTokenizer(
+								contentTypeHeader, "; ");
+						if (st.hasMoreTokens()) {
+							contentType = st.nextToken();
+						}
 					}
-
 					Log.d(TAG, "post uri=" + uri);
 
 					if (contentType.equalsIgnoreCase("multipart/form-data")) {
 						Log.d(TAG, "post file");
 						Log.d(TAG, "contentLength=" + contentLength + "size="
 								+ size);
+						
 						if (size > 0) {
 							rlen = is.read(buf, 0, bufsize);
 							size -= rlen;
@@ -364,82 +339,89 @@ public class NanoHTTPD {
 
 							}
 						}
-
 						byte[] fbuf = f.toByteArray();
-						FileOutputStream out = null;
 						if (fbuf.length > 0) {
-							int offset = stripMultipartHeaders(fbuf, 0);
-							ByteArrayInputStream bin = new ByteArrayInputStream(
-									fbuf, 0, offset);
+							Properties fileInfos = new Properties();
+							int offset = stripMultipartHeaders(fbuf, fileInfos);
 
-							BufferedReader in = new BufferedReader(
-									new InputStreamReader(bin));
-							String firstLine = in.readLine();
-							Long fileSize = size + fbuf.length - offset
-									- firstLine.length() - 6;
-
-							Log.d(TAG, "fileSize=" + String.valueOf(fileSize));
-							String fileName = "upload.bin";
-
-							while (true) {
-								String line = in.readLine();
-
-								Log.d(TAG, "line=" + line);
-								if (line == null) {
-									break;
-								}
-								if (line.contains("filename=")) {
-									String[] temps = line.split(";");
-									for (int i = 0; i < temps.length; i++) {
-										if (temps[i].trim().startsWith(
-												"filename=")) {
-											fileName = temps[i].trim()
-													.substring(10)
-													.replace("\"", "");
-										}
-
-									}
-								}
-							}
-							// Log.d(TAG, "fileName=" + fileName);
+							String fileName = fileInfos.getProperty("filename",
+									"unknown.file");
+							Log.d(TAG, "Multipart Header offset=" + offset);
+							String boundary = contentTypeHeader
+									.contains("boundary=") ? contentTypeHeader
+									.substring(contentTypeHeader
+											.lastIndexOf("boundary=") + 9)
+									: null;
+							Log.d(TAG, "boundary=" + boundary);
 							File rootDir = new File(homeDir, uri);
 							if (!rootDir.exists()) {
 								rootDir.mkdirs();
 							}
 							File outFile = new File(rootDir, fileName);
 
-							out = new FileOutputStream(outFile);
+							FileOutputStream out = new FileOutputStream(outFile);
 
-							out.write(fbuf, offset, fbuf.length - offset);
-							// out.write(fbuf, 0, fbuf.length );
-							size = size - (firstLine.length() + 6);
-							while (size > 0) {
-								rlen = is.read(buf, 0, bufsize);
+							int endOffset = findMultipartEnd(f, offset,
+									boundary);
+							Log.d(TAG, "endOffset=" + endOffset);
+							if (endOffset < 0) {
+								out.write(f.toByteArray(), offset, f.size()
+										- offset);
+							} else {
+								out.write(f.toByteArray(), offset, endOffset
+										- offset);
+							}
+							final int fileBufSize = 81920;
+							byte[] fileBuf = new byte[fileBufSize];
+							//long sizeUnreaded = size - f.size();
+							ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-								size -= rlen;
-								if (rlen > 0) {
+							while (true) {
+								if (size <= 0) {
+									break;
+								}
 
-									if (size <= 0) {
-										rlen -= (firstLine.length() + 6);
+								if (size <= fileBufSize * 2) {
+
+									int read = is.read(fileBuf, 0, fileBufSize);
+									if (read > 0) {
+										byteArrayOutputStream.write(fileBuf, 0,
+												read);
+										size -= read;
+										Log.d(TAG, "size readed 2:" + read);
+									} else {
+										break;
 									}
-									out.write(buf, 0, rlen);
 
 								} else {
-									break;
+
+									int read = is.read(fileBuf, 0, fileBufSize);
+									if (read > 0) {
+										out.write(fileBuf, 0, read);
+										size -= read;
+										Log.d(TAG, "size readed 1:" + read);
+									} else {
+										break;
+									}
 								}
 							}
 
-							if (out != null) {
-
-								out.close();
-
+							if (byteArrayOutputStream.size() > 0) {
+								endOffset = findMultipartEnd(
+										byteArrayOutputStream, 0, boundary);
+								out.write(byteArrayOutputStream.toByteArray(),
+										0, endOffset);
 							}
-
-							if (outFile.length() != fileSize) {
-								// outFile.delete();
+							out.close();
+							if (size > 0) {
+								Log.d(TAG,
+										"Upload canceled:" + outFile.getName());
+								outFile.delete();
+							} else {
+								Log.d(TAG,
+										"Upload finished:" + outFile.getName());
 							}
 						}
-
 					} else {
 						// Handle application/x-www-form-urlencoded
 						while (rlen >= 0 && size > 0) {
@@ -470,19 +452,45 @@ public class NanoHTTPD {
 						postLine = postLine.trim();
 						decodeParms(postLine, parms);
 
-						String mkdir = parms.getProperty("mkdir","").trim();
-						if(!mkdir.equals("")){
-							mkdir(uri, homeDir, mkdir);
+						String mkdir = parms.getProperty("mkdir", "").trim();
+						if (!mkdir.equals("")) {
+							Utils.mkdir(uri, homeDir, mkdir);
 						}
-						String deleteFile=parms.getProperty("delete","").trim();
-						if(!deleteFile.equals("")){
-							deleteFile(uri, homeDir, deleteFile);
+						String deleteFile = parms.getProperty("delete", "")
+								.trim();
+						if (!deleteFile.equals("")) {
+							Utils.deleteFile(uri, homeDir, deleteFile);
 						}
-
+						
+						String remoteAction= parms.getProperty("remote_action", "")
+								.trim();
+						
+						if ("key".equals(remoteAction)) {
+							String keycode=parms.getProperty("data","");
+							Log.w(TAG, "keycode="+keycode);
+							Utils.sendKeyEvent(keycode,mContext);
+							Response r = new Response(HTTP_OK, MIME_HTML, "OK");
+							sendResponse(r.status, r.mimeType, r.header, r.data);
+						}
+						
+						
+						if ("launch".equals(remoteAction)) {
+							String launch=parms.getProperty("data");
+							Log.w(TAG, "launch="+launch);
+							Intent intent=new Intent();
+							ComponentName component=ComponentName.unflattenFromString(launch);
+							intent.setComponent(component);
+							Utils.startActivitySafely(mContext,intent);
+							Response r = new Response(HTTP_OK, MIME_HTML, "OK");
+							sendResponse(r.status, r.mimeType, r.header, r.data);
+						}
+						
+						
+						
 					}
 				}
 
-				Response r = serveFile(uri, method, header, homeDir, action);
+				Response r = serveFile(uri, method, header,parms, homeDir, action);
 				if (r == null) {
 					Log.d(TAG, "HTTP_INTERNALERROR");
 					sendError(HTTP_INTERNALERROR,
@@ -512,23 +520,7 @@ public class NanoHTTPD {
 			}
 		}
 
-		private File getHomeDir(String uri) {
-
-			if (uri.equals("/") || uri.equals("")) {
-				return null;
-			}
-
-			if (mDeviceList != null) {
-				for (String volume : mDeviceList) {
-					File file = new File(volume);
-					if (uri.startsWith("/" + file.getName())) {
-						return file.getParentFile();
-					}
-				}
-			}
-
-			return null;
-		}
+		
 
 		/**
 		 * Decodes the sent headers and loads the data into java Properties' key
@@ -605,18 +597,109 @@ public class NanoHTTPD {
 			return 0;
 		}
 
+		private int findMultipartEnd(
+				final ByteArrayOutputStream byteArrayOutputStream, int offset,
+				String boundy) {
+			Log.d(TAG,
+					"removeMultipartEnd size " + byteArrayOutputStream.size());
+
+			int[] bpositions = getBoundaryPositions(
+					byteArrayOutputStream.toByteArray(), offset,
+					boundy.getBytes());
+
+			if (bpositions != null && bpositions.length > 0) {
+				for (int i : bpositions) {
+					Log.d(TAG, "bpositions " + i);
+				}
+
+				return bpositions[0] - 4;
+			} else {
+				return -1;
+			}
+
+		}
+
+		/**
+		 * Find the byte positions where multipart boundaries start.
+		 */
+		public int[] getBoundaryPositions(byte[] b, int offset, byte[] boundary) {
+			int matchcount = 0;
+			int matchbyte = -1;
+			List<Integer> matchbytes = new ArrayList<Integer>();
+			for (int i = offset; i < b.length; i++) {
+				if (b[i] == boundary[matchcount]) {
+					if (matchcount == 0)
+						matchbyte = i;
+					matchcount++;
+					if (matchcount == boundary.length) {
+						matchbytes.add(matchbyte);
+						matchcount = 0;
+						matchbyte = -1;
+					}
+				} else {
+					i -= matchcount;
+					matchcount = 0;
+					matchbyte = -1;
+				}
+			}
+			int[] ret = new int[matchbytes.size()];
+			for (int i = 0; i < ret.length; i++) {
+				ret[i] = matchbytes.get(i);
+			}
+			return ret;
+		}
+
 		/**
 		 * It returns the offset separating multipart file headers from the
 		 * file's data.
 		 **/
-		private int stripMultipartHeaders(byte[] b, int offset) {
-			int i = 0;
-			for (i = offset; i < b.length; i++) {
-				if (b[i] == '\r' && b[++i] == '\n' && b[++i] == '\r'
-						&& b[++i] == '\n')
+		private int stripMultipartHeaders(byte[] b, Properties fileInfos) {
+
+			ByteArrayInputStream hbis = new ByteArrayInputStream(b, 0, b.length);
+
+			BufferedReader hin = new BufferedReader(new InputStreamReader(hbis));
+			int index = 0;
+
+			while (true) {
+				String line = null;
+
+				try {
+					line = hin.readLine();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				if (line == null) {
+
 					break;
+				} else {
+					Log.d(TAG,
+							"line [" + line + "]" + ",length=" + line.length());
+
+					index += line.getBytes().length + 2;
+					if (line.contains("Content-Type:")) {
+						break;
+					}
+					if (line.contains("filename=")) {
+
+						String[] splits = line.split(";");
+						for (int i = 0; i < splits.length; i++) {
+							String fileName = splits[i];
+							if (fileName.contains("filename=")) {
+								fileName = fileName.substring(11,
+										fileName.length() - 1);
+								fileInfos.put("filename", fileName);
+								Log.d(TAG, "upload file name=" + fileName);
+								break;
+							}
+						}
+
+					}
+				}
+
 			}
-			return i + 1;
+			return index + 2;
+
 		}
 
 		/**
@@ -624,7 +707,11 @@ public class NanoHTTPD {
 		 * For example: "an+example%20string" -> "an example string"
 		 */
 		private String decodePercent(String str) throws InterruptedException {
+			
+			Log.d(TAG, "decodePercent "+str);
+			
 			return URLDecoder.decode(str);
+			
 		}
 
 		/**
@@ -722,95 +809,50 @@ public class NanoHTTPD {
 		private Socket mySocket;
 	}
 
+
 	
-	public String getGalleryListString(List<File> files)
-	{
-		StringBuilder sb = new StringBuilder();
 
-		for (int i = 0; i < files.size(); ++i) {
-
-			File file = files.get(i);
-			sb.append(String.format("{ url: '%s', caption: '%s'},\n", file.getName(),file.getName()));
-		}
-	
-		return sb.toString();
-	}
-	
-	public String getFileListString(List<File> files, String uri) {
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < files.size(); ++i) {
-
-			File file = files.get(i);
-			String data_icon = file.isDirectory() ? "folder" : "file";
-			if (uri.equals("/")) {
-				uri = "";
-			}
-			String href = file.isDirectory() ? uri + "/"
-					+ files.get(i).getName() + "/" : "#";
-			href = href.replace("//", "/");
-			String img_src = null;
-
-			if (file.isDirectory()) {
-				img_src = "/images/folder.png?webroot=true";
-			} else {
-				img_src = "/images/file.png?webroot=true";
-
-				String extensionName = getExtensionName(file.getName());
-
-				String mime = theMimeTypes.get(extensionName.toLowerCase());
-				Log.d(TAG, "getMimeTypeFromExtension " + mime + " form "
-						+ extensionName);
-				if (mime != null) {
-
-					if (mime.startsWith("video")) {
-						img_src = "/images/video.png?webroot=true";
-					} else if (mime.startsWith("audio")) {
-						img_src = "/images/audio.png?webroot=true";
-					} else if (mime.startsWith("image")) {
-						img_src = "/images/image.png?webroot=true";
-					}
-
-				}
-
-			}
-
-			sb.append(String.format(
-					"<li onclick='FileitemClick(this)' isDirectory='%b'"
-							+ " fileSize='%d'" + " data-icon='%s' >"
-							+ "<a href='%s' " + " data-transition='none' "
-							+ "><img src='%s'"
-							+ " alt='%s' class='ui-li-icon' />%s</a></li>\n",
-					file.isDirectory(),
-					file.isDirectory() ? -1 : file.length(), data_icon, href,
-					img_src, file.getName(), file.getName()));
-
-		}
-		return sb.toString();
-	}
-
-	private List<File> getDeviceVolumes() {
-
-		ArrayList<File> files = new ArrayList<File>();
-
-		if (mDeviceList != null) {
-
-			for (String s : mDeviceList) {
-				files.add(new File(s));
-			}
-		}
-
-		return files;
-	}
 
 	/**
 	 * Serves file from homeDir and its' subdirectories (only). Uses only URI,
 	 * ignores all headers and HTTP parameters.
 	 */
-	public Response serveFile(String uri, String method, Properties header,
+	public Response serveFile(String uri, String method, Properties header,Properties parms,
 			File homeDir, String action) {
 		Response res = null;
 		Log.d(TAG, "serveFile");
+		boolean isIEBrowser = false;
+		String userAngentString = header.getProperty("user-agent");
+		
+		Log.d(TAG, "userAngentString:" + userAngentString);
+
+		if (userAngentString != null) {
+			isIEBrowser = userAngentString.toLowerCase().contains("msie");
+		}
+		
+		
+		String userLanguageString=Locale.getDefault().getLanguage();
+		Log.d(TAG, "userLanguageString:" + userLanguageString);
+		String language="";
+		if(userLanguageString!=null){
+			
+			
+			if(userLanguageString.equals("zh")){
+				if("cn".equalsIgnoreCase(Locale.getDefault().getCountry()))
+				{	
+					language="zh_CN";//简体中文
+				}else {
+					language="zh_TW";//繁体中文
+				}
+			}
+			else if(userLanguageString.equals("ja")) {
+				language="ja";//日文
+			}
+		}
+		
+		
+		Log.d(TAG, "isIEBrowser:" + isIEBrowser);
+		Log.d(TAG, "language :"+language);
 		// Make sure we won't die of an exception later
 		if (homeDir != null && !homeDir.isDirectory()) {
 			res = new Response(HTTP_INTERNALERROR, MIME_PLAINTEXT,
@@ -862,8 +904,18 @@ public class NanoHTTPD {
 				return res;
 
 			}
-
-			File indexFile = new File(wwwroot, "index.html");
+			File indexFileRoot=new File(wwwroot,language);
+			
+			File indexFile=null;
+		
+			if(homeDir==null){		
+				indexFile= new File(indexFileRoot,  "index.html");
+			}
+			else {
+				indexFile= new File(indexFileRoot, isIEBrowser ? "file_ie.html"
+						: "file.html");
+			}
+			
 
 			String msg = null;
 
@@ -881,8 +933,10 @@ public class NanoHTTPD {
 				};
 
 				List<File> files = null;
+				boolean isVolumeList=false;
 				if (f == null) {
-					files = getDeviceVolumes();
+					isVolumeList=true;
+					files =Utils.getDeviceVolumes();
 				} else if (f.canRead()) {
 					files = Arrays.asList(f.listFiles(filter));
 
@@ -906,7 +960,7 @@ public class NanoHTTPD {
 					StringBuilder sb = new StringBuilder();
 
 					if (method.equalsIgnoreCase("post")) {
-						sb.append(getFileListString(files, uri));
+						sb.append(Utils.getFileListString(files, uri,isVolumeList));
 					} else {
 						BufferedReader br = new BufferedReader(new FileReader(
 								indexFile));
@@ -917,7 +971,7 @@ public class NanoHTTPD {
 							}
 
 							if (r.trim().equalsIgnoreCase("{file_list_data}")) {
-								r = getFileListString(files, uri);
+								r = Utils.getFileListString(files, uri,isVolumeList);
 
 							}
 							sb.append(r);
@@ -951,7 +1005,7 @@ public class NanoHTTPD {
 
 				int dot = f.getCanonicalPath().lastIndexOf('.');
 				if (dot >= 0)
-					mime = theMimeTypes.get(f.getCanonicalPath()
+					mime = Mime.theMimeTypes.get(f.getCanonicalPath()
 							.substring(dot + 1).toLowerCase());
 				if (mime == null)
 					mime = MIME_DEFAULT_BINARY;
@@ -960,42 +1014,46 @@ public class NanoHTTPD {
 				if (action.endsWith("play")) {
 
 					if (mime.contains("image")) {
-						File galleryHtml = new File(wwwroot, "gallery.html");
+						File indexFileRoot=new File(wwwroot,language);
+						File galleryHtml = new File(indexFileRoot, "gallery.html");
 
 						if (galleryHtml.exists()) {
 							FileFilter filter = new FileFilter() {
 
 								@Override
 								public boolean accept(File pathname) {
-									int dot=0;
+									int dot = 0;
 									try {
-										dot = pathname.getCanonicalPath().lastIndexOf('.');
-										if(dot<=0){
+										dot = pathname.getCanonicalPath()
+												.lastIndexOf('.');
+										if (dot <= 0) {
 											return false;
 										}
-										String type=theMimeTypes.get(pathname.getCanonicalPath()
-												.substring(dot + 1).toLowerCase());
-										if(type==null){
+										String type = Mime.theMimeTypes.get(pathname
+												.getCanonicalPath()
+												.substring(dot + 1)
+												.toLowerCase());
+										if (type == null) {
 											return false;
 										}
-										if (type.contains("image") ) {
-															return true;
-														} else {
-															return false;
-														}
+										if (type.contains("image")) {
+											return true;
+										} else {
+											return false;
+										}
 									} catch (IOException e) {
-										
+
 										e.printStackTrace();
 										return false;
 									}
-									
-									
+
 								}
 							};
 
 							List<File> files = null;
 							if (f.canRead()) {
-								files = Arrays.asList(f.getParentFile().listFiles(filter));
+								files = Arrays.asList(f.getParentFile()
+										.listFiles(filter));
 
 								Collections.sort(files, new Comparator<File>() {
 									@Override
@@ -1015,8 +1073,7 @@ public class NanoHTTPD {
 							} else {
 								files = new ArrayList<File>();
 							}
-							
-							
+
 							String msg = null;
 							try {
 
@@ -1030,26 +1087,23 @@ public class NanoHTTPD {
 										break;
 									}
 
-									if (r.trim().contains(
-											"{gallery_items}")) {
-										
-										
-										r=getGalleryListString(files);
+									if (r.trim().contains("{gallery_items}")) {
+
+										r = Utils.getGalleryListString(files);
 									}
-									if (r.trim().contains(
-											"instance.show")) {
-										
-										for (int i=0;i< files.size();i++) {
-											File file=files.get(i);
-											if(file.getName().equals(f.getName())){
-												r="instance.show("+i+")";
+									if (r.trim().contains("instance.show")) {
+
+										for (int i = 0; i < files.size(); i++) {
+											File file = files.get(i);
+											if (file.getName().equals(
+													f.getName())) {
+												r = "instance.show(" + i + ")";
 												break;
 											}
 										}
-										
+
 									}
 
-									
 									sb.append(r);
 									sb.append("\n");
 
@@ -1069,7 +1123,8 @@ public class NanoHTTPD {
 
 					else if (mime.contains("audio/mpeg")
 							|| mime.contains("mp4")) {
-						File playerHtml = new File(wwwroot, "player.html");
+						File indexFileRoot=new File(wwwroot,language);
+						File playerHtml = new File(indexFileRoot, "player.html");
 
 						if (playerHtml.exists()) {
 							String msg = null;
@@ -1092,7 +1147,7 @@ public class NanoHTTPD {
 												: "video";
 										r = String.format(
 												" <%s  src=\"%s\" controls=\"controls\" autoplay=\"autoplay\">"
-														+ "您的浏览器不支持%s播放。"
+														+ mContext.getString(R.string.browser_no_html5_support)
 														+ " </%s>", type,
 												f.getName(), type, type);
 
@@ -1157,7 +1212,7 @@ public class NanoHTTPD {
 						if (newLen < 0)
 							newLen = 0;
 
-						final long dataLen = newLen;    
+						final long dataLen = newLen;
 						FileInputStream fis = new FileInputStream(f) {
 							@Override
 							public int available() throws IOException {
@@ -1193,38 +1248,9 @@ public class NanoHTTPD {
 		}
 	}
 
-	private static String getExtensionName(String filename) {
-		if ((filename != null) && (filename.length() > 0)) {
-			int dot = filename.lastIndexOf('.');
-			if ((dot > -1) && (dot < (filename.length() - 1))) {
-				return filename.substring(dot + 1);
-			}
-		}
-		return filename;
-	}
 
-	/**
-	 * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
-	 */
-	private static Hashtable<String, String> theMimeTypes = new Hashtable<String, String>();
-	static {
-		StringTokenizer st = new StringTokenizer("css		text/css "
-				+ "htm		text/html " + "html		text/html " + "xml		text/xml "
-				+ "txt		text/plain " + "asc		text/plain " + "gif		image/gif "
-				+ "jpg		image/jpeg " + "jpeg		image/jpeg " + "png		image/png "
-				+ "bmp image/bmp " + "mp3		audio/mpeg " + "wma audio/wma "
-				+ "m3u		audio/mpeg-url " + "mp4		video/mp4 "
-				+ "ogv		video/ogg " + "flv		video/x-flv "
-				+ "mov		video/quicktime " + "3gp  video/3gp "
-				+ "rmvb  video/rmvb " + "swf		application/x-shockwave-flash "
-				+ "js			application/javascript " + "pdf		application/pdf "
-				+ "doc		application/msword " + "ogg		application/x-ogg "
-				+ "zip		application/octet-stream "
-				+ "exe		application/octet-stream "
-				+ "class		application/octet-stream ");
-		while (st.hasMoreTokens())
-			theMimeTypes.put(st.nextToken(), st.nextToken());
-	}
+
+
 
 	private static int theBufferSize = 16 * 1024;
 

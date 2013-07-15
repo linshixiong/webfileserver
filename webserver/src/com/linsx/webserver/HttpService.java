@@ -3,7 +3,6 @@ package com.linsx.webserver;
 import java.io.*;
 import java.util.ArrayList;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Notification.Builder;
 import android.app.NotificationManager;
@@ -51,6 +50,7 @@ public class HttpService extends Service {
 		if (pm != null) {
 			wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "NanoHTTPD");
 		}
+		Settings.init(this);
 		mNotificationManager = (NotificationManager) this
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		connMgr = (ConnectivityManager) this
@@ -65,7 +65,6 @@ public class HttpService extends Service {
 
 	private BroadcastReceiver receiver = new BroadcastReceiver() {
 
-		@SuppressLint({ "NewApi", "DefaultLocale" })
 		@Override
 		public void onReceive(Context context, Intent intent) {
 
@@ -126,7 +125,7 @@ public class HttpService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-
+		Log.d(TAG, "onStartCommand");
 		File wwwRoot = DEBUG?new File(Environment.getExternalStorageDirectory(), "web"): new File(this.getFilesDir(), "web");
 
 		try {
@@ -167,7 +166,6 @@ public class HttpService extends Service {
 	/**
 	 * Ìí¼ÓÒ»¸önotification
 	 */
-	@SuppressLint("NewApi")
 	private void showNotificaction() {
 
 		builder = new Notification.Builder(this);

@@ -1,8 +1,6 @@
 package com.linsx.webserver;
 import java.lang.reflect.InvocationTargetException; 
 import java.lang.reflect.Method; 
- 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.storage.StorageManager; 
  
@@ -12,7 +10,7 @@ public class StorageListHelper {
     private Method mMethodGetPaths; 
     private Method mMethodGetState; 
      
-    @SuppressLint("InlinedApi")
+
 	public StorageListHelper(Context context) { 
     	mContext = context; 
         if (mContext != null) { 
